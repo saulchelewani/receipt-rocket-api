@@ -1,0 +1,23 @@
+[project]
+name = "receipt-rocket-api"
+version = "0.1.0"
+description = "Add your description here"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi",
+    "uvicorn",
+    "pydantic",
+    "sqlalchemy",
+    "python-dotenv",
+    "alembic",
+    "pytest",
+    "psycopg2-binary",
+    "requests",
+    "sqlalchemy-utils",
+    "pydantic-settings",
+    "python-multipart",
+    "passlib",
+    "bcrypt",
+    "python-jose",
+    "httpx"
+]
