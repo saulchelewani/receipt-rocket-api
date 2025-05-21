@@ -62,7 +62,7 @@ class Profile(Base):
 
     id: Mapped[UUID] = Column(UUID(as_uuid=True), default=uuid.uuid4, primary_key=True, index=True, unique=True,
                               nullable=False)
-    tenant_id: Mapped[UUID] = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=True)
+    tenant_id: Mapped[UUID] = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
     business_name: Mapped[str] = Column(String, nullable=True)
     address: Mapped[str] = Column(String, nullable=True)
     phone: Mapped[str] = Column(String, nullable=True)

@@ -1,9 +1,8 @@
 from datetime import timedelta
-from uuid import UUID
 
 import pytest
-from sqlalchemy import create_engine, StaticPool, insert
-from sqlalchemy.orm import sessionmaker, Session, Mapped
+from sqlalchemy import create_engine, StaticPool
+from sqlalchemy.orm import sessionmaker, Session
 from starlette.testclient import TestClient
 
 from apps.main import app
@@ -36,6 +35,7 @@ def override_get_db():
     finally:
         db.close()
 
+
 @pytest.fixture
 def client(test_db):
     app.dependency_overrides[get_db] = lambda: test_db
@@ -52,6 +52,7 @@ def test_db():
         db.rollback()
         db.close()
         Base.metadata.drop_all(bind=engine_test)
+
 
 #
 # @pytest.fixture
@@ -88,7 +89,15 @@ def test_db():
 def auth_header_global_admin(test_global_admin):
     token = create_access_token(data={"sub": test_global_admin.email}, expires_delta=timedelta(minutes=15))
     return {"Authorization": f"Bearer {token}"}
-#
+
+
+@pytest.fixture()
+def auth_header_tenant_admin(test_tenant_admin, test_tenant: Tenant):
+    token = create_access_token(data={"sub": test_tenant_admin.email},
+                                expires_delta=timedelta(minutes=15))
+    return {"Authorization": f"Bearer {token}"}
+
+
 #
 # @pytest.fixture
 # def auth_header_non_admin(test_non_admin_user):
@@ -112,15 +121,34 @@ def test_tenant(test_db: Session):
     test_db.commit()
     test_db.refresh(tenant)
     return tenant
-#
-#
-# @pytest.fixture
-# def test_admin_user(client, test_db: Session, test_tenant):
-#     role = create_role(test_db, "admin")
-#     user = create_user(test_db, "admin@example.com", "password123", role.id, False, test_tenant.id)
-#     return user
-#
-#
+
+
+@pytest.fixture
+def test_admin(client, test_db: Session, test_tenant):
+    role = test_db.query(Role).filter(Role.name == RoleEnum.ADMIN).first()
+    if not role:
+        role = Role(name=RoleEnum.ADMIN)
+        test_db.add(role)
+        test_db.commit()
+    return role
+
+
+@pytest.fixture
+def test_tenant_admin(client, test_db: Session, test_tenant, test_admin):
+    user = test_db.query(User).filter(User.tenant_id == test_tenant.id).first()
+    if user: return user
+    user = User(
+        email="admin@example.com",
+        hashed_password=settings.TEST_HASH,
+        role_id=test_admin.id,
+        tenant_id=test_tenant.id
+    )
+    test_db.add(user)
+    test_db.commit()
+    test_db.refresh(user)
+    return user
+
+
 # @pytest.fixture
 # def test_non_admin_user(test_db: Session):
 #     role = create_role(test_db, "not_admin")
@@ -148,25 +176,7 @@ def test_global_admin(client, test_db: Session):
     test_db.commit()
     test_db.refresh(user)
     return user
-#
-#
-# def create_user(test_db: Session, email: str, password: str, role_id: Mapped[UUID] | UUID, is_global: bool = True,
-#                 tenant_id: UUID | None = None) -> User:
-#     user = User(email=email, hashed_password=password, role_id=role_id, is_global=is_global, name="John Doe",
-#                 tenant_id=tenant_id)
-#     test_db.add(user)
-#     test_db.commit()
-#     test_db.refresh(user)
-#     return user
-#
-#
-# def create_role(test_db: Session, name: str) -> Role:
-#     role = Role(name=name)
-#     test_db.add(role)
-#     test_db.commit()
-#     test_db.refresh(role)
-#     return role
-#
+
 #
 # def create_route(test_db: Session) -> Route:
 #     route = Route(path='/', method='GET', action='GET:/', name="Get user list")

@@ -61,6 +61,15 @@ async def get_current_tenant_or_none(token: str = Depends(oauth2_scheme), db: Se
     return tenant
 
 
+async def get_tenant(db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    if not user or not user.tenant_id:
+        raise HTTPException(status_code=400, detail="User not found")
+    tenant = db.query(Tenant).filter(Tenant.id == user.tenant_id).first()
+    if not tenant:
+        raise HTTPException(status_code=400, detail="Tenant not found")
+    return tenant
+
+
 async def is_global_admin(user: User = Depends(get_current_user)):
     if user.role.name != RoleEnum.GLOBAL_ADMIN or not user.scope == Scope.GLOBAL:
         raise HTTPException(status_code=403, detail="User is not a global admin user")
