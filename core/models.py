@@ -43,7 +43,7 @@ class Tenant(Base):
     code: Mapped[str] = Column(String, unique=True, index=True, nullable=False)
 
     users: Mapped[list["User"]] = relationship("User", back_populates="tenant")
-
+    profile: Mapped["Profile"] = relationship("Profile", back_populates="tenant")
 
 class Route(Base):
     __tablename__ = "routes"
@@ -56,6 +56,22 @@ class Route(Base):
     name: Mapped[str] = Column(String, nullable=True)
 
     roles: Mapped[list["Role"]] = relationship("Role", secondary="role_route_association", back_populates="routes")
+
+class Profile(Base):
+    __tablename__ = "profiles"
+
+    id: Mapped[UUID] = Column(UUID(as_uuid=True), default=uuid.uuid4, primary_key=True, index=True, unique=True,
+                              nullable=False)
+    tenant_id: Mapped[UUID] = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=True)
+    business_name: Mapped[str] = Column(String, nullable=True)
+    address: Mapped[str] = Column(String, nullable=True)
+    phone: Mapped[str] = Column(String, nullable=True)
+    email: Mapped[str] = Column(String, nullable=True)
+    website: Mapped[str] = Column(String, nullable=True)
+    tin: Mapped[str] = Column(String, nullable=True)
+    logo: Mapped[str] = Column(String, nullable=True)
+
+    tenant: Mapped["Tenant"] = relationship("Tenant", back_populates="profile")
 
 role_route_association = Table(
     "role_route_association",
