@@ -98,7 +98,7 @@ class Terminal(Base):
     created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
 
-    configurations = relationship("TerminalConfiguration", back_populates="terminal")
+    configurations = relationship("TerminalConfiguration", back_populates="terminal", uselist=False)
     tax_rates = relationship("TaxRate", back_populates="terminal")
     tenant: Mapped["Tenant"] = relationship("Tenant", back_populates="terminals")
 

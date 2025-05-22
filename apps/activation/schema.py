@@ -30,3 +30,10 @@ class TerminalRead(BaseModel):
     id: UUID
     terminal_id: str
     confirmed_at: datetime
+
+class TerminalConfigurationRead(BaseModel):
+    id: UUID
+    label: str
+    email: str
+    phone: str
+    trading_name: str
