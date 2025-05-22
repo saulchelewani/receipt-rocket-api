@@ -19,5 +19,6 @@ dependencies = [
     "passlib",
     "bcrypt",
     "python-jose",
-    "httpx"
+    "httpx",
+    "rstr"
 ]

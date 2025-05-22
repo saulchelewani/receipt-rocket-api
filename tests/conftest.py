@@ -91,6 +91,12 @@ def auth_header_global_admin(test_global_admin):
     return {"Authorization": f"Bearer {token}"}
 
 
+@pytest.fixture
+def auth_header(test_user):
+    token = create_access_token(data={"sub": test_user.email}, expires_delta=timedelta(minutes=15))
+    return {"Authorization": f"Bearer {token}"}
+
+
 @pytest.fixture()
 def auth_header_tenant_admin(test_tenant_admin, test_tenant: Tenant):
     token = create_access_token(data={"sub": test_tenant_admin.email},
@@ -149,6 +155,23 @@ def test_tenant_admin(client, test_db: Session, test_tenant, test_admin):
     return user
 
 
+@pytest.fixture
+def test_user(client, test_db: Session, test_tenant):
+    role = get_role(test_db, RoleEnum.USER)
+
+    user = test_db.query(User).filter(User.tenant_id == test_tenant.id).first()
+    if user: return user
+    user = User(
+        email="user@example.com",
+        hashed_password=settings.TEST_HASH,
+        role_id=role.id,
+        tenant_id=test_tenant.id
+    )
+    test_db.add(user)
+    test_db.commit()
+    test_db.refresh(user)
+    return user
+
 # @pytest.fixture
 # def test_non_admin_user(test_db: Session):
 #     role = create_role(test_db, "not_admin")
@@ -156,14 +179,17 @@ def test_tenant_admin(client, test_db: Session, test_tenant, test_admin):
 #     return user
 #
 #
-@pytest.fixture
-def test_global_admin(client, test_db: Session):
-    role = test_db.query(Role).filter(Role.name == RoleEnum.GLOBAL_ADMIN).first()
+def get_role(test_db: Session, role_name: str):
+    role = test_db.query(Role).filter(Role.name == role_name).first()
     if not role:
-        role = Role(name=RoleEnum.GLOBAL_ADMIN)
+        role = Role(name=role_name)
         test_db.add(role)
         test_db.commit()
+    return role
 
+@pytest.fixture
+def test_global_admin(client, test_db: Session):
+    role = get_role(test_db, RoleEnum.GLOBAL_ADMIN)
     user = test_db.query(User).filter(User.role_id == role.id).first()
     if user: return user
     user = User(

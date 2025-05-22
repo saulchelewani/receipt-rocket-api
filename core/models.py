@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import Column, String, ForeignKey, Boolean, UUID, Table
+from sqlalchemy import Column, String, ForeignKey, UUID, Table, Float
 from sqlalchemy.orm import Mapped, relationship
 
 from core.database import Base
@@ -45,6 +45,7 @@ class Tenant(Base):
     users: Mapped[list["User"]] = relationship("User", back_populates="tenant")
     profile: Mapped["Profile"] = relationship("Profile", back_populates="tenant")
 
+
 class Route(Base):
     __tablename__ = "routes"
 
@@ -56,6 +57,7 @@ class Route(Base):
     name: Mapped[str] = Column(String, nullable=True)
 
     roles: Mapped[list["Role"]] = relationship("Role", secondary="role_route_association", back_populates="routes")
+
 
 class Profile(Base):
     __tablename__ = "profiles"
@@ -73,9 +75,49 @@ class Profile(Base):
 
     tenant: Mapped["Tenant"] = relationship("Tenant", back_populates="profile")
 
+
 role_route_association = Table(
     "role_route_association",
     Base.metadata,
     Column("role_id", UUID(as_uuid=True), ForeignKey("roles.id"), primary_key=True),
     Column("route_id", UUID(as_uuid=True), ForeignKey("routes.id"), primary_key=True),
 )
+
+
+class Terminal(Base):
+    __tablename__ = "terminals"
+
+    id: Mapped[UUID] = Column(UUID(as_uuid=True), default=uuid.uuid4, primary_key=True, index=True, unique=True,
+                              nullable=False)
+    terminal_id = Column(String, primary_key=True, index=True)
+    secret_key = Column(String)
+
+    configurations = relationship("TerminalConfiguration", back_populates="terminal")
+    tax_rates = relationship("TaxRate", back_populates="terminal")
+
+
+class TerminalConfiguration(Base):
+    __tablename__ = "terminal_configurations"
+
+    id: Mapped[UUID] = Column(UUID(as_uuid=True), default=uuid.uuid4, primary_key=True, index=True, unique=True,
+                              nullable=False)
+    terminal_id = Column(String, ForeignKey("terminals.terminal_id"))
+    label = Column(String)
+    email = Column(String)
+    phone = Column(String)
+    trading_name = Column(String)
+
+    terminal = relationship("Terminal", back_populates="configurations")
+
+
+class TaxRate(Base):
+    __tablename__ = "tax_rates"
+    id: Mapped[UUID] = Column(UUID(as_uuid=True), default=uuid.uuid4, primary_key=True, index=True, unique=True,
+                              nullable=False)
+    rate_id = Column(String)
+    name = Column(String)
+    rate = Column(Float)
+    charge_mode = Column(String)
+    terminal_id = Column(String, ForeignKey("terminals.terminal_id"))
+
+    terminal = relationship("Terminal", back_populates="tax_rates")
