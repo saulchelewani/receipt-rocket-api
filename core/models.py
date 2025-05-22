@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import Column, String, ForeignKey, UUID, Table, Float
+from sqlalchemy import Column, String, ForeignKey, UUID, Table, Float, DateTime, func
 from sqlalchemy.orm import Mapped, relationship
 
 from core.database import Base
@@ -93,6 +93,10 @@ class Terminal(Base):
     terminal_id = Column(String, primary_key=True, index=True)
     secret_key = Column(String)
     tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
+    confirmed_at = Column(DateTime, nullable=True)
+
+    created_at = Column(DateTime, default=func.now())
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
 
     configurations = relationship("TerminalConfiguration", back_populates="terminal")
     tax_rates = relationship("TaxRate", back_populates="terminal")

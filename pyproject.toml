@@ -20,5 +20,6 @@ dependencies = [
     "bcrypt",
     "python-jose",
     "httpx",
-    "rstr"
+    "rstr",
+    "respx"
 ]

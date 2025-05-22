@@ -2,10 +2,11 @@ import httpx
 from sqlalchemy.orm import Session
 
 from core.models import Terminal, TerminalConfiguration, TaxRate, Tenant
+from core.settings import settings
+from core.utils import sign_hmac_sha512
 
-API_URL = "https://dev-eis-api.mra.mw/api/v1/onboarding/activate-terminal"
 
-def activate_terminal(code: str, tenant: Tenant, db: Session):
+def activate_terminal(code: str, tenant: Tenant, db: Session, x_mac_address: str | None = None):
     payload = {
         "terminalActivationCode": code,
         "environment": {
@@ -13,7 +14,7 @@ def activate_terminal(code: str, tenant: Tenant, db: Session):
                 "osName": "Windows 11",
                 "osVersion": "Windows 11",
                 "osBuild": "11.901.2",
-                "macAddress": "00-00-00-00-00-00"
+                "macAddress": x_mac_address
             },
             "pos": {
                 "productID": "MRA-desktop/{guid}",
@@ -22,9 +23,12 @@ def activate_terminal(code: str, tenant: Tenant, db: Session):
         }
     }
 
-    response = httpx.post(API_URL, json=payload)
+    response = httpx.post(f"{settings.MRA_EIS_URL}/onboarding/activate-terminal", json=payload)
     response.raise_for_status()
-    result = response.json()["data"]
+    response_data = response.json()
+    result = response_data["data"]
+    if int(response_data["statusCode"]) < -1:
+        raise Exception(response_data["remark"])
 
     terminal_data = result["activatedTerminal"]
     config = result["configuration"]
@@ -57,4 +61,23 @@ def activate_terminal(code: str, tenant: Tenant, db: Session):
         db.add(tax_rate)
 
     db.commit()
+    db.refresh(terminal)
     return terminal
+
+
+async def confirm_terminal_activation(terminal):
+    headers = {
+        "accept": "text/plain",
+        "x-signature": sign_hmac_sha512(terminal.terminal_id, terminal.secret_key),
+        "Content-Type": "application/json"
+    }
+
+    payload = {
+        "terminalId": terminal.terminal_id
+    }
+
+    async with httpx.AsyncClient() as client:
+        response = await client.post(f"{settings.MRA_EIS_URL}/onboarding/terminal-activated-confirmation",
+                                     headers=headers, json=payload)
+        response.raise_for_status()
+        return response.json()

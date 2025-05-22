@@ -9,7 +9,7 @@ from apps.main import app
 from core.auth import create_access_token
 from core.database import Base, get_db
 from core.enums import RoleEnum, Scope
-from core.models import Tenant, Role, User
+from core.models import Tenant, Role, User, Terminal
 from core.settings import settings
 
 # from core.models import Role, User, Tenant, Route, role_route_association, Workflow, WorkflowCategory
@@ -103,6 +103,16 @@ def auth_header_tenant_admin(test_tenant_admin, test_tenant: Tenant):
                                 expires_delta=timedelta(minutes=15))
     return {"Authorization": f"Bearer {token}"}
 
+
+@pytest.fixture
+def test_terminal(test_db: Session, test_tenant: Tenant):
+    terminal = test_db.query(Terminal).first()
+    if terminal: return terminal
+    terminal = Terminal(terminal_id="test", secret_key="test", tenant_id=test_tenant.id)
+    test_db.add(terminal)
+    test_db.commit()
+    test_db.refresh(terminal)
+    return terminal
 
 #
 # @pytest.fixture

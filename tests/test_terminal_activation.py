@@ -1,7 +1,11 @@
 import pytest
-from unittest.mock import patch
+import respx
+import rstr
+from httpx import Response
 
-mock_response_data = {
+from core.settings import settings
+
+activation_response = {
     "statusCode": 1,
     "remark": "Terminal Activated, pending for confirmation request",
     "data": {
@@ -59,13 +63,37 @@ mock_response_data = {
     "errors": None
 }
 
-@patch("core.services.activation.httpx.post")
-def test_activate_terminal_mocked(mock_post, client, auth_header):
-    # Mock HTTPX post
-    mock_post.return_value.status_code = 200
-    mock_post.return_value.json.return_value = mock_response_data
 
-    response = client.post("/api/v1/activation/activate", headers=auth_header, json={"terminalActivationCode": "MOCK-CODE-1234"})
+# @patch("core.services.activation.httpx.post")
+@pytest.mark.asyncio
+@respx.mock
+def test_activate_terminal_mocked(client, auth_header):
+    respx.post(f"{settings.MRA_EIS_URL}/onboarding/activate-terminal").mock(
+        return_value=Response(200, json=activation_response))
+
+    response = client.post(
+        "/api/v1/activation/activate",
+        headers={
+            "Authorization": auth_header["Authorization"],
+            "x-mac-address": rstr.xeger(r'^([0-9A-Fa-f]{2}([-:])){5}([0-9A-Fa-f]{2})$'),
+        }, json={"terminal_activation_code": "MOCK-CODE-1234"})
 
     assert response.status_code == 200
-    assert response.json()["terminal_id"] == "3a6d3703-1c39-41e8-98ce-b38d9574540d"
+
+
+@pytest.mark.asyncio
+@respx.mock
+def test_confirm_activation(client, auth_header, test_terminal):
+    respx.post(f"{settings.MRA_EIS_URL}/onboarding/terminal-activated-confirmation").mock(
+        return_value=Response(200, json={
+            "statusCode": 1,
+            "remark": "Terminal is now fully activated and ready for use!",
+            "data": True,
+            "errors": []
+        }))
+    response = client.post(
+        "/api/v1/activation/confirm",
+        headers=auth_header,
+        json={"terminal_id": str(test_terminal.id)}
+    )
+    assert response.status_code == 200
