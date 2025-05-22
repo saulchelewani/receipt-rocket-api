@@ -44,6 +44,7 @@ class Tenant(Base):
 
     users: Mapped[list["User"]] = relationship("User", back_populates="tenant")
     profile: Mapped["Profile"] = relationship("Profile", back_populates="tenant")
+    terminals: Mapped[list["Terminal"]] = relationship("Terminal", back_populates="tenant")
 
 
 class Route(Base):
@@ -91,9 +92,11 @@ class Terminal(Base):
                               nullable=False)
     terminal_id = Column(String, primary_key=True, index=True)
     secret_key = Column(String)
+    tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
 
     configurations = relationship("TerminalConfiguration", back_populates="terminal")
     tax_rates = relationship("TaxRate", back_populates="terminal")
+    tenant: Mapped["Tenant"] = relationship("Tenant", back_populates="terminals")
 
 
 class TerminalConfiguration(Base):

@@ -1,11 +1,11 @@
 import httpx
 from sqlalchemy.orm import Session
 
-from core.models import Terminal, TerminalConfiguration, TaxRate
+from core.models import Terminal, TerminalConfiguration, TaxRate, Tenant
 
 API_URL = "https://dev-eis-api.mra.mw/api/v1/onboarding/activate-terminal"
 
-def activate_terminal(code: str, db: Session):
+def activate_terminal(code: str, tenant: Tenant, db: Session):
     payload = {
         "terminalActivationCode": code,
         "environment": {
@@ -31,7 +31,8 @@ def activate_terminal(code: str, db: Session):
 
     terminal = Terminal(
         terminal_id=terminal_data["terminalId"],
-        secret_key=terminal_data["terminalCredentials"]["secretKey"]
+        secret_key=terminal_data["terminalCredentials"]["secretKey"],
+        tenant_id=tenant.id
     )
     db.add(terminal)
 
