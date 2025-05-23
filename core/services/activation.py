@@ -27,7 +27,7 @@ def activate_terminal(code: str, tenant: Tenant, db: Session, x_mac_address: str
     response = httpx.post(f"{settings.MRA_EIS_URL}/onboarding/activate-terminal", json=payload)
     response_data = response.json()
 
-    if int(response_data["statusCode"]) < -1:
+    if response_data["statusCode"] < -1:
         raise HTTPException(status_code=400, detail=response_data["remark"])
 
     result = response_data["data"]

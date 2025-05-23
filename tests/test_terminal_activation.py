@@ -4,6 +4,7 @@ import rstr
 from httpx import Response
 
 from core.settings import settings
+from tests.conftest import get_test_file
 
 activation_response = {
     "statusCode": 1,
@@ -62,6 +63,8 @@ activation_response = {
     },
     "errors": None
 }
+
+fake_response = get_test_file("activation_response.json")
 
 
 @pytest.mark.asyncio

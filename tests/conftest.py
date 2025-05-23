@@ -1,3 +1,4 @@
+import os
 from datetime import timedelta
 
 import pytest
@@ -207,6 +208,14 @@ def test_global_admin(client, test_db: Session):
     test_db.commit()
     test_db.refresh(user)
     return user
+
+
+
+def get_test_file(filename: str):
+    response_file_path = os.path.join(os.path.dirname(__file__), 'data', filename)
+    with open(response_file_path, "r") as file:
+        return file.read()
+
 
 #
 # def create_route(test_db: Session) -> Route:

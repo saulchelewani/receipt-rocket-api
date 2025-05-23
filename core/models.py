@@ -1,78 +1,74 @@
 import uuid
 
 from sqlalchemy import Column, String, ForeignKey, UUID, Table, Float, DateTime, func
-from sqlalchemy.orm import Mapped, relationship
+from sqlalchemy.orm import Mapped, relationship, declared_attr
 
 from core.database import Base
 
 
-class User(Base):
+class TimestampMixin:
+    @declared_attr
+    def id(self):
+        return Column(UUID(as_uuid=True), default=uuid.uuid4, primary_key=True)
+
+    @declared_attr
+    def created_at(self):
+        return Column(DateTime, default=func.now())
+
+    @declared_attr
+    def updated_at(self):
+        return Column(DateTime, default=func.now(), onupdate=func.now())
+
+
+class User(Base, TimestampMixin):
     __tablename__ = "users"
 
-    id: Mapped[UUID] = Column(UUID(as_uuid=True), default=uuid.uuid4, primary_key=True, index=True, unique=True,
-                              nullable=False)
     email: Mapped[str] = Column(String, unique=True, index=True)
     name: Mapped[str] = Column(String, nullable=True)
     hashed_password: Mapped[str] = Column(String)
     tenant_id: Mapped[UUID] = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=True)
     role_id: Mapped[UUID] = Column(UUID(as_uuid=True), ForeignKey("roles.id"))
     scope: Mapped[str] = Column(String, nullable=True)
-    created_at: Mapped[DateTime] = Column(DateTime, default=func.now())
-    updated_at: Mapped[DateTime] = Column(DateTime, default=func.now(), onupdate=func.now())
 
     role: Mapped["Role"] = relationship("Role", back_populates="users")
     tenant: Mapped["Tenant"] = relationship("Tenant", back_populates="users")
 
 
-class Role(Base):
+class Role(Base, TimestampMixin):
     __tablename__ = "roles"
 
-    id: Mapped[UUID] = Column(UUID(as_uuid=True), default=uuid.uuid4, primary_key=True, index=True, unique=True,
-                              nullable=False)
     name: Mapped[str] = Column(String, unique=True, index=True, nullable=False)
     description: Mapped[str] = Column(String, nullable=True)
-    created_at: Mapped[DateTime] = Column(DateTime, default=func.now())
-    updated_at: Mapped[DateTime] = Column(DateTime, default=func.now(), onupdate=func.now())
 
     users: Mapped[list["User"]] = relationship("User", back_populates="role")
     routes: Mapped[list["Route"]] = relationship("Route", secondary="role_route_association", back_populates="roles")
 
 
-class Tenant(Base):
+class Tenant(Base, TimestampMixin):
     __tablename__ = "tenants"
 
-    id: Mapped[UUID] = Column(UUID(as_uuid=True), default=uuid.uuid4, primary_key=True, index=True, unique=True,
-                              nullable=False)
     name: Mapped[str] = Column(String, unique=True, index=True, nullable=False)
     code: Mapped[str] = Column(String, unique=True, index=True, nullable=False)
-    created_at: Mapped[DateTime] = Column(DateTime, default=func.now())
-    updated_at: Mapped[DateTime] = Column(DateTime, default=func.now(), onupdate=func.now())
 
     users: Mapped[list["User"]] = relationship("User", back_populates="tenant")
     profile: Mapped["Profile"] = relationship("Profile", back_populates="tenant")
     terminals: Mapped[list["Terminal"]] = relationship("Terminal", back_populates="tenant")
 
 
-class Route(Base):
+class Route(Base, TimestampMixin):
     __tablename__ = "routes"
 
-    id: Mapped[UUID] = Column(UUID(as_uuid=True), default=uuid.uuid4, primary_key=True, index=True, unique=True,
-                              nullable=False)
     path: Mapped[str] = Column(String, unique=False, index=True)  # The route path (e.g., "/tasks/")
     method: Mapped[str] = Column(String)  # The HTTP method (e.g., "GET", "POST")
     action: Mapped[str] = Column(String, nullable=False)  # (e.g. delete task)
     name: Mapped[str] = Column(String, nullable=True)
-    created_at: Mapped[DateTime] = Column(DateTime, default=func.now())
-    updated_at: Mapped[DateTime] = Column(DateTime, default=func.now(), onupdate=func.now())
 
     roles: Mapped[list["Role"]] = relationship("Role", secondary="role_route_association", back_populates="routes")
 
 
-class Profile(Base):
+class Profile(Base, TimestampMixin):
     __tablename__ = "profiles"
 
-    id: Mapped[UUID] = Column(UUID(as_uuid=True), default=uuid.uuid4, primary_key=True, index=True, unique=True,
-                              nullable=False)
     tenant_id: Mapped[UUID] = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
     business_name: Mapped[str] = Column(String, nullable=True)
     address: Mapped[str] = Column(String, nullable=True)
@@ -81,8 +77,6 @@ class Profile(Base):
     website: Mapped[str] = Column(String, nullable=True)
     tin: Mapped[str] = Column(String, nullable=True)
     logo: Mapped[str] = Column(String, nullable=True)
-    created_at: Mapped[DateTime] = Column(DateTime, default=func.now())
-    updated_at: Mapped[DateTime] = Column(DateTime, default=func.now(), onupdate=func.now())
 
     tenant: Mapped["Tenant"] = relationship("Tenant", back_populates="profile")
 
@@ -95,49 +89,39 @@ role_route_association = Table(
 )
 
 
-class Terminal(Base):
+class Terminal(Base, TimestampMixin):
     __tablename__ = "terminals"
 
-    id: Mapped[UUID] = Column(UUID(as_uuid=True), default=uuid.uuid4, primary_key=True, index=True, unique=True,
-                              nullable=False)
-    terminal_id = Column(String, primary_key=True, index=True)
-    secret_key = Column(String)
-    tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
-    confirmed_at = Column(DateTime, nullable=True)
-    created_at = Column(DateTime, default=func.now())
-    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
+    terminal_id: Mapped[str] = Column(String)
+    secret_key: Mapped[str] = Column(String)
+    tenant_id: Mapped[UUID] = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
+    confirmed_at: Mapped[DateTime] = Column(DateTime, nullable=True)
 
-    configurations = relationship("TerminalConfiguration", back_populates="terminal", uselist=False)
-    tax_rates = relationship("TaxRate", back_populates="terminal")
+    configurations: Mapped["TerminalConfiguration"] = relationship("TerminalConfiguration", back_populates="terminal",
+                                                                   uselist=False)
+    tax_rates: Mapped[list["TaxRate"]] = relationship("TaxRate", back_populates="terminal")
     tenant: Mapped["Tenant"] = relationship("Tenant", back_populates="terminals")
 
 
-class TerminalConfiguration(Base):
+class TerminalConfiguration(Base, TimestampMixin):
     __tablename__ = "terminal_configurations"
 
-    id: Mapped[UUID] = Column(UUID(as_uuid=True), default=uuid.uuid4, primary_key=True, index=True, unique=True,
-                              nullable=False)
-    terminal_id = Column(String, ForeignKey("terminals.terminal_id"))
-    label = Column(String)
-    email = Column(String)
-    phone = Column(String)
-    trading_name = Column(String)
-    created_at: Mapped[DateTime] = Column(DateTime, default=func.now())
-    updated_at: Mapped[DateTime] = Column(DateTime, default=func.now(), onupdate=func.now())
+    terminal_id: Mapped[str] = Column(String, ForeignKey("terminals.terminal_id"))
+    label: Mapped[str] = Column(String)
+    email: Mapped[str] = Column(String)
+    phone: Mapped[str] = Column(String)
+    trading_name: Mapped[str] = Column(String)
 
-    terminal = relationship("Terminal", back_populates="configurations")
+    terminal: Mapped["Terminal"] = relationship("Terminal", back_populates="configurations")
 
 
-class TaxRate(Base):
+class TaxRate(Base, TimestampMixin):
     __tablename__ = "tax_rates"
-    id: Mapped[UUID] = Column(UUID(as_uuid=True), default=uuid.uuid4, primary_key=True, index=True, unique=True,
-                              nullable=False)
-    rate_id = Column(String)
-    name = Column(String)
-    rate = Column(Float)
-    charge_mode = Column(String)
-    terminal_id = Column(String, ForeignKey("terminals.terminal_id"))
-    created_at: Mapped[DateTime] = Column(DateTime, default=func.now())
-    updated_at: Mapped[DateTime] = Column(DateTime, default=func.now(), onupdate=func.now())
 
-    terminal = relationship("Terminal", back_populates="tax_rates")
+    rate_id: Mapped[str] = Column(String)
+    name: Mapped[str] = Column(String)
+    rate: Mapped[float] = Column(Float)
+    charge_mode: Mapped[str] = Column(String)
+    terminal_id: Mapped[str] = Column(String, ForeignKey("terminals.terminal_id"))
+
+    terminal: Mapped["Terminal"] = relationship("Terminal", back_populates="tax_rates")
