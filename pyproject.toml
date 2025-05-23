@@ -23,7 +23,7 @@ dependencies = [
     "rstr",
     "respx"
 ]
-[tool.uv]
+
 dev-dependencies = [
     "pytest"
 ]
