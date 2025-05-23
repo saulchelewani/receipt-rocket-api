@@ -28,7 +28,7 @@ jobs:
         python -m pip install --upgrade pip uv
         uv init
         uv pip install flake8 pytest
-        if [ -f pyproject.toml ]; then uv pip install -r pyproject.toml; fi
+        uv sync
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
