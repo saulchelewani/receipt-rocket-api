@@ -32,4 +32,4 @@ jobs:
         uv sync
     - name: Test with pytest
       run: |
-        pytest
+        uv venv exec pytest
