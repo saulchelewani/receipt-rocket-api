@@ -17,6 +17,8 @@ class User(Base):
     tenant_id: Mapped[UUID] = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=True)
     role_id: Mapped[UUID] = Column(UUID(as_uuid=True), ForeignKey("roles.id"))
     scope: Mapped[str] = Column(String, nullable=True)
+    created_at: Mapped[DateTime] = Column(DateTime, default=func.now())
+    updated_at: Mapped[DateTime] = Column(DateTime, default=func.now(), onupdate=func.now())
 
     role: Mapped["Role"] = relationship("Role", back_populates="users")
     tenant: Mapped["Tenant"] = relationship("Tenant", back_populates="users")
@@ -29,6 +31,8 @@ class Role(Base):
                               nullable=False)
     name: Mapped[str] = Column(String, unique=True, index=True, nullable=False)
     description: Mapped[str] = Column(String, nullable=True)
+    created_at: Mapped[DateTime] = Column(DateTime, default=func.now())
+    updated_at: Mapped[DateTime] = Column(DateTime, default=func.now(), onupdate=func.now())
 
     users: Mapped[list["User"]] = relationship("User", back_populates="role")
     routes: Mapped[list["Route"]] = relationship("Route", secondary="role_route_association", back_populates="roles")
@@ -41,6 +45,8 @@ class Tenant(Base):
                               nullable=False)
     name: Mapped[str] = Column(String, unique=True, index=True, nullable=False)
     code: Mapped[str] = Column(String, unique=True, index=True, nullable=False)
+    created_at: Mapped[DateTime] = Column(DateTime, default=func.now())
+    updated_at: Mapped[DateTime] = Column(DateTime, default=func.now(), onupdate=func.now())
 
     users: Mapped[list["User"]] = relationship("User", back_populates="tenant")
     profile: Mapped["Profile"] = relationship("Profile", back_populates="tenant")
@@ -56,6 +62,8 @@ class Route(Base):
     method: Mapped[str] = Column(String)  # The HTTP method (e.g., "GET", "POST")
     action: Mapped[str] = Column(String, nullable=False)  # (e.g. delete task)
     name: Mapped[str] = Column(String, nullable=True)
+    created_at: Mapped[DateTime] = Column(DateTime, default=func.now())
+    updated_at: Mapped[DateTime] = Column(DateTime, default=func.now(), onupdate=func.now())
 
     roles: Mapped[list["Role"]] = relationship("Role", secondary="role_route_association", back_populates="routes")
 
@@ -73,6 +81,8 @@ class Profile(Base):
     website: Mapped[str] = Column(String, nullable=True)
     tin: Mapped[str] = Column(String, nullable=True)
     logo: Mapped[str] = Column(String, nullable=True)
+    created_at: Mapped[DateTime] = Column(DateTime, default=func.now())
+    updated_at: Mapped[DateTime] = Column(DateTime, default=func.now(), onupdate=func.now())
 
     tenant: Mapped["Tenant"] = relationship("Tenant", back_populates="profile")
 
@@ -94,7 +104,6 @@ class Terminal(Base):
     secret_key = Column(String)
     tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
     confirmed_at = Column(DateTime, nullable=True)
-
     created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
 
@@ -113,6 +122,8 @@ class TerminalConfiguration(Base):
     email = Column(String)
     phone = Column(String)
     trading_name = Column(String)
+    created_at: Mapped[DateTime] = Column(DateTime, default=func.now())
+    updated_at: Mapped[DateTime] = Column(DateTime, default=func.now(), onupdate=func.now())
 
     terminal = relationship("Terminal", back_populates="configurations")
 
@@ -126,5 +137,7 @@ class TaxRate(Base):
     rate = Column(Float)
     charge_mode = Column(String)
     terminal_id = Column(String, ForeignKey("terminals.terminal_id"))
+    created_at: Mapped[DateTime] = Column(DateTime, default=func.now())
+    updated_at: Mapped[DateTime] = Column(DateTime, default=func.now(), onupdate=func.now())
 
     terminal = relationship("Terminal", back_populates="tax_rates")
