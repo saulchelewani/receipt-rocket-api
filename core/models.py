@@ -6,7 +6,28 @@ from sqlalchemy.orm import Mapped, relationship, declared_attr
 from core.database import Base
 
 
-class TimestampMixin:
+class Model(Base):
+    __abstract__ = True
+
+    def __repr__(self):
+        return f"<{self.__class__.__name__} {self.id}>"
+
+    def __str__(self):
+        return f"<{self.__class__.__name__} {self.id}>"
+
+    def __hash__(self):
+        return hash(self.id)
+
+    def __eq__(self, other):
+        return self.id == other.id
+
+    def __ne__(self, other):
+        return self.id != other.id
+
+    def to_dict(self):
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+
+
     @declared_attr
     def id(self):
         return Column(UUID(as_uuid=True), default=uuid.uuid4, primary_key=True)
@@ -20,7 +41,7 @@ class TimestampMixin:
         return Column(DateTime, default=func.now(), onupdate=func.now())
 
 
-class User(Base, TimestampMixin):
+class User(Model):
     __tablename__ = "users"
 
     email: Mapped[str] = Column(String, unique=True, index=True)
@@ -34,7 +55,7 @@ class User(Base, TimestampMixin):
     tenant: Mapped["Tenant"] = relationship("Tenant", back_populates="users")
 
 
-class Role(Base, TimestampMixin):
+class Role(Model):
     __tablename__ = "roles"
 
     name: Mapped[str] = Column(String, unique=True, index=True, nullable=False)
@@ -44,7 +65,7 @@ class Role(Base, TimestampMixin):
     routes: Mapped[list["Route"]] = relationship("Route", secondary="role_route_association", back_populates="roles")
 
 
-class Tenant(Base, TimestampMixin):
+class Tenant(Model):
     __tablename__ = "tenants"
 
     name: Mapped[str] = Column(String, unique=True, index=True, nullable=False)
@@ -55,7 +76,7 @@ class Tenant(Base, TimestampMixin):
     terminals: Mapped[list["Terminal"]] = relationship("Terminal", back_populates="tenant")
 
 
-class Route(Base, TimestampMixin):
+class Route(Model):
     __tablename__ = "routes"
 
     path: Mapped[str] = Column(String, unique=False, index=True)  # The route path (e.g., "/tasks/")
@@ -66,7 +87,7 @@ class Route(Base, TimestampMixin):
     roles: Mapped[list["Role"]] = relationship("Role", secondary="role_route_association", back_populates="routes")
 
 
-class Profile(Base, TimestampMixin):
+class Profile(Model):
     __tablename__ = "profiles"
 
     tenant_id: Mapped[UUID] = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
@@ -89,7 +110,7 @@ role_route_association = Table(
 )
 
 
-class Terminal(Base, TimestampMixin):
+class Terminal(Model):
     __tablename__ = "terminals"
 
     terminal_id: Mapped[str] = Column(String)
@@ -97,13 +118,13 @@ class Terminal(Base, TimestampMixin):
     tenant_id: Mapped[UUID] = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
     confirmed_at: Mapped[DateTime] = Column(DateTime, nullable=True)
 
-    configurations: Mapped["TerminalConfiguration"] = relationship("TerminalConfiguration", back_populates="terminal",
-                                                                   uselist=False)
+    configurations: Mapped["TerminalConfiguration"] = relationship(
+        "TerminalConfiguration", back_populates="terminal", uselist=False)
     tax_rates: Mapped[list["TaxRate"]] = relationship("TaxRate", back_populates="terminal")
     tenant: Mapped["Tenant"] = relationship("Tenant", back_populates="terminals")
 
 
-class TerminalConfiguration(Base, TimestampMixin):
+class TerminalConfiguration(Model):
     __tablename__ = "terminal_configurations"
 
     terminal_id: Mapped[str] = Column(String, ForeignKey("terminals.terminal_id"))
@@ -115,7 +136,7 @@ class TerminalConfiguration(Base, TimestampMixin):
     terminal: Mapped["Terminal"] = relationship("Terminal", back_populates="configurations")
 
 
-class TaxRate(Base, TimestampMixin):
+class TaxRate(Model):
     __tablename__ = "tax_rates"
 
     rate_id: Mapped[str] = Column(String)
