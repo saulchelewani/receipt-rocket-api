@@ -1,4 +1,5 @@
 import httpx
+from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
 from core.models import Terminal, TerminalConfiguration, TaxRate, Tenant
@@ -24,11 +25,12 @@ def activate_terminal(code: str, tenant: Tenant, db: Session, x_mac_address: str
     }
 
     response = httpx.post(f"{settings.MRA_EIS_URL}/onboarding/activate-terminal", json=payload)
-    response.raise_for_status()
     response_data = response.json()
-    result = response_data["data"]
+
     if int(response_data["statusCode"]) < -1:
-        raise Exception(response_data["remark"])
+        raise HTTPException(status_code=400, detail=response_data["remark"])
+
+    result = response_data["data"]
 
     terminal_data = result["activatedTerminal"]
     config = result["configuration"]
@@ -79,5 +81,8 @@ async def confirm_terminal_activation(terminal):
     async with httpx.AsyncClient() as client:
         response = await client.post(f"{settings.MRA_EIS_URL}/onboarding/terminal-activated-confirmation",
                                      headers=headers, json=payload)
-        response.raise_for_status()
+
+        if int(response.json()["statusCode"]) < -1:
+            raise HTTPException(status_code=400, detail=response.json()["remark"])
+
         return response.json()

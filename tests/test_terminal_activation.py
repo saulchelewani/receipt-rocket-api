@@ -64,7 +64,6 @@ activation_response = {
 }
 
 
-# @patch("core.services.activation.httpx.post")
 @pytest.mark.asyncio
 @respx.mock
 def test_activate_terminal_mocked(client, auth_header):
@@ -83,6 +82,34 @@ def test_activate_terminal_mocked(client, auth_header):
 
 @pytest.mark.asyncio
 @respx.mock
+def test_activate_terminal_mock_failure(client, auth_header):
+    respx.post(f"{settings.MRA_EIS_URL}/onboarding/activate-terminal").mock(
+        return_value=Response(400, json={
+            "statusCode": -100500,
+            "remark": "Server error",
+            "data": "string",
+            "errors": [
+                {
+                    "errorCode": -100500,
+                    "fieldName": "string",
+                    "errorMessage": "string"
+                }
+            ]
+        }))
+
+    response = client.post(
+        "/api/v1/activation/activate",
+        headers={
+            "Authorization": auth_header["Authorization"],
+            "x-mac-address": rstr.xeger(r'^([0-9A-Fa-f]{2}([-:])){5}([0-9A-Fa-f]{2})$'),
+        },
+        json={"terminal_activation_code": "MOCK-CODE-1234"})
+
+    assert response.status_code == 400
+
+
+@pytest.mark.asyncio
+@respx.mock
 def test_confirm_activation(client, auth_header, test_terminal):
     respx.post(f"{settings.MRA_EIS_URL}/onboarding/terminal-activated-confirmation").mock(
         return_value=Response(200, json={
@@ -93,7 +120,32 @@ def test_confirm_activation(client, auth_header, test_terminal):
         }))
     response = client.post(
         "/api/v1/activation/confirm",
-        headers=auth_header,
+        headers={
+            "Authorization": auth_header["Authorization"],
+            "x-mac-address": rstr.xeger(r'^([0-9A-Fa-f]{2}([-:])){5}([0-9A-Fa-f]{2})$'),
+        },
         json={"terminal_id": str(test_terminal.id)}
     )
     assert response.status_code == 200
+
+
+@pytest.mark.asyncio
+@respx.mock
+def test_confirm_activation_failure(client, auth_header, test_terminal):
+    respx.post(f"{settings.MRA_EIS_URL}/onboarding/terminal-activated-confirmation").mock(
+        return_value=Response(400, json={
+            "statusCode": -199999,
+            "remark": "Terminal is de-activated.",
+            "data": True,
+            "errors": []
+        }))
+    response = client.post(
+        "/api/v1/activation/confirm",
+        headers={
+            "Authorization": auth_header["Authorization"],
+            "x-mac-address": rstr.xeger(r'^([0-9A-Fa-f]{2}([-:])){5}([0-9A-Fa-f]{2})$'),
+        },
+        json={"terminal_id": str(test_terminal.id)}
+    )
+
+    assert response.status_code == 400

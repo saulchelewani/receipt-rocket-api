@@ -12,11 +12,6 @@ from core.enums import RoleEnum, Scope
 from core.models import Tenant, Role, User, Terminal
 from core.settings import settings
 
-# from core.models import Role, User, Tenant, Route, role_route_association, Workflow, WorkflowCategory
-
-# We don't need a custom test client anymore since we've updated the models
-# to handle UUID serialization correctly
-
 # Use an in-memory SQLite database for testing
 engine_test = create_engine(
     "sqlite:///:memory:",
