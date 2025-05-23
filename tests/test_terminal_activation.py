@@ -85,12 +85,12 @@ def test_activate_terminal_mocked(client, auth_header):
 def test_activate_terminal_mock_failure(client, auth_header):
     respx.post(f"{settings.MRA_EIS_URL}/onboarding/activate-terminal").mock(
         return_value=Response(400, json={
-            "statusCode": -100500,
-            "remark": "Server error",
+            "statusCode": -200011,
+            "remark": "Value is outside range eg too long or too short or does not match expected pattern",
             "data": "string",
             "errors": [
                 {
-                    "errorCode": -100500,
+                    "errorCode": --200011,
                     "fieldName": "string",
                     "errorMessage": "string"
                 }
