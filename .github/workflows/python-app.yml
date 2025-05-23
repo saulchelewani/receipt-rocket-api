@@ -31,7 +31,7 @@ jobs:
         echo "$HOME/.cargo/bin" >> $GITHUB_PATH
 
     - name: Install dependencies using uv
-      run: uv pip install -e .  # or `uv venv && uv pip install -r requirements.txt` if that's your flow
+      run: uv sync
 
     - name: Run tests with pytest
-      run: uv pip run pytest  # or just `pytest` if uv puts it in the venv path
+      run: pytest  # or just `pytest` if uv puts it in the venv path
