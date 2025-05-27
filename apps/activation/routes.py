@@ -25,7 +25,7 @@ async def activate(
         x_mac_address: Annotated[str | None, Header(), None] = None,
         tenant: Tenant = Depends(get_tenant)):
     terminal = activate_terminal(request.terminal_activation_code, tenant, db, x_mac_address)
-    return terminal.configurations
+    return terminal
 
 
 @router.post("/confirm", response_model=TerminalRead)

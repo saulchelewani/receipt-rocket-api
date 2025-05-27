@@ -10,7 +10,7 @@ from apps.main import app
 from core.auth import create_access_token
 from core.database import Base, get_db
 from core.enums import RoleEnum, Scope
-from core.models import Tenant, Role, User, Terminal
+from core.models import Tenant, Role, User, Terminal, Profile
 from core.settings import settings
 
 # Use an in-memory SQLite database for testing
@@ -104,7 +104,7 @@ def auth_header_tenant_admin(test_tenant_admin, test_tenant: Tenant):
 def test_terminal(test_db: Session, test_tenant: Tenant):
     terminal = test_db.query(Terminal).first()
     if terminal: return terminal
-    terminal = Terminal(terminal_id="test", secret_key="test", tenant_id=test_tenant.id)
+    terminal = Terminal(terminal_id="test", secret_key=settings.SECRET_KEY, tenant_id=test_tenant.id)
     test_db.add(terminal)
     test_db.commit()
     test_db.refresh(terminal)
@@ -185,6 +185,17 @@ def test_user(client, test_db: Session, test_tenant):
 #     return user
 #
 #
+
+@pytest.fixture
+def test_profile(client, test_db: Session, test_tenant):
+    profile = test_db.query(Profile).first()
+    if profile: return profile
+    profile = Profile(tenant_id=test_tenant.id)
+    test_db.add(profile)
+    test_db.commit()
+    test_db.refresh(profile)
+    return profile
+
 def get_role(test_db: Session, role_name: str):
     role = test_db.query(Role).filter(Role.name == role_name).first()
     if not role:

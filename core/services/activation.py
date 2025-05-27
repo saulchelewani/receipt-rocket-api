@@ -2,7 +2,7 @@ import httpx
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
-from core.models import Terminal, TerminalConfiguration, TaxRate, Tenant
+from core.models import Terminal, TaxRate, Tenant
 from core.settings import settings
 from core.utils import sign_hmac_sha512
 
@@ -38,19 +38,16 @@ def activate_terminal(code: str, tenant: Tenant, db: Session, x_mac_address: str
     terminal = Terminal(
         terminal_id=terminal_data["terminalId"],
         secret_key=terminal_data["terminalCredentials"]["secretKey"],
-        tenant_id=tenant.id
+        tenant_id=tenant.id,
+        label=config["terminalConfiguration"]["terminalLabel"],
+        email=config["terminalConfiguration"]["emailAddress"],
+        phone_number=config["terminalConfiguration"]["phoneNumber"],
+        trading_name=config["terminalConfiguration"]["tradingName"],
+        version=config["terminalConfiguration"]["versionNo"],
+        address_lines=config["terminalConfiguration"]["addressLines"],
     )
     db.add(terminal)
 
-    conf = config["terminalConfiguration"]
-    terminal_config = TerminalConfiguration(
-        terminal_id=terminal.terminal_id,
-        label=conf["terminalLabel"],
-        email=conf["emailAddress"],
-        phone=conf["phoneNumber"],
-        trading_name=conf["tradingName"]
-    )
-    db.add(terminal_config)
 
     for tax in config["globalConfiguration"]["taxrates"]:
         tax_rate = TaxRate(
@@ -58,7 +55,6 @@ def activate_terminal(code: str, tenant: Tenant, db: Session, x_mac_address: str
             name=tax["name"],
             rate=tax["rate"],
             charge_mode=tax["chargeMode"],
-            terminal_id=terminal.terminal_id
         )
         db.add(tax_rate)
 

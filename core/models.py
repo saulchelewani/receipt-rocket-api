@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import Column, String, ForeignKey, UUID, Table, Float, DateTime, func
+from sqlalchemy import Column, String, ForeignKey, UUID, Table, Float, DateTime, func, Integer, JSON, Boolean
 from sqlalchemy.orm import Mapped, relationship, declared_attr
 
 from core.database import Base
@@ -26,7 +26,6 @@ class Model(Base):
 
     def to_dict(self):
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
-
 
     @declared_attr
     def id(self):
@@ -91,13 +90,12 @@ class Profile(Model):
     __tablename__ = "profiles"
 
     tenant_id: Mapped[UUID] = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
-    business_name: Mapped[str] = Column(String, nullable=True)
-    address: Mapped[str] = Column(String, nullable=True)
-    phone: Mapped[str] = Column(String, nullable=True)
-    email: Mapped[str] = Column(String, nullable=True)
-    website: Mapped[str] = Column(String, nullable=True)
     tin: Mapped[str] = Column(String, nullable=True)
-    logo: Mapped[str] = Column(String, nullable=True)
+    version: Mapped[str] = Column(String, nullable=True)
+    vat_registered: Mapped[bool] = Column(Boolean, nullable=True)
+    activated_tax_rate_ids: Mapped[list[str]] = Column(JSON, nullable=True)
+    tax_office_code: Mapped[str] = Column(String, nullable=True)
+    tax_office_name: Mapped[str] = Column(String, nullable=True)
 
     tenant: Mapped["Tenant"] = relationship("Tenant", back_populates="profile")
 
@@ -117,23 +115,16 @@ class Terminal(Model):
     secret_key: Mapped[str] = Column(String)
     tenant_id: Mapped[UUID] = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
     confirmed_at: Mapped[DateTime] = Column(DateTime, nullable=True)
+    trading_name: Mapped[str] = Column(String, nullable=True)
+    email: Mapped[str] = Column(String, nullable=True)
+    phone_number: Mapped[str] = Column(String)
+    label: Mapped[str] = Column(String, nullable=True)
+    version: Mapped[str] = Column(Integer, nullable=True)
+    address_lines: Mapped[list[str]] = Column(JSON, nullable=True)
+    offline_limit_hours: Mapped[int] = Column(Integer, nullable=True)
+    offline_limit_amount: Mapped[float] = Column(Float, nullable=True)
 
-    configurations: Mapped["TerminalConfiguration"] = relationship(
-        "TerminalConfiguration", back_populates="terminal", uselist=False)
-    tax_rates: Mapped[list["TaxRate"]] = relationship("TaxRate", back_populates="terminal")
     tenant: Mapped["Tenant"] = relationship("Tenant", back_populates="terminals")
-
-
-class TerminalConfiguration(Model):
-    __tablename__ = "terminal_configurations"
-
-    terminal_id: Mapped[str] = Column(String, ForeignKey("terminals.terminal_id"))
-    label: Mapped[str] = Column(String)
-    email: Mapped[str] = Column(String)
-    phone: Mapped[str] = Column(String)
-    trading_name: Mapped[str] = Column(String)
-
-    terminal: Mapped["Terminal"] = relationship("Terminal", back_populates="configurations")
 
 
 class TaxRate(Model):
@@ -141,8 +132,6 @@ class TaxRate(Model):
 
     rate_id: Mapped[str] = Column(String)
     name: Mapped[str] = Column(String)
-    rate: Mapped[float] = Column(Float)
+    rate: Mapped[float | None] = Column(Float, nullable=True)
+    ordinal: Mapped[int] = Column(Integer)
     charge_mode: Mapped[str] = Column(String)
-    terminal_id: Mapped[str] = Column(String, ForeignKey("terminals.terminal_id"))
-
-    terminal: Mapped["Terminal"] = relationship("Terminal", back_populates="tax_rates")

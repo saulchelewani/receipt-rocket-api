@@ -35,5 +35,5 @@ class TerminalConfigurationRead(BaseModel):
     id: UUID
     label: str
     email: str
-    phone: str
+    phone_number: str
     trading_name: str
