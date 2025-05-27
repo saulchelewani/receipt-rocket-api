@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from apps.activation.routes import router as activation_router
 from apps.config.routes import router as config_router
 from apps.profiles.routes import router as profiles_router
+from apps.sales.routes import router as sales_router
 from apps.tenants.routes import router as tenant_router
 from core.settings import settings
 
@@ -19,6 +20,8 @@ app.include_router(profiles_router, prefix=settings.API_V1_STR)
 app.include_router(activation_router, prefix=settings.API_V1_STR)
 
 app.include_router(config_router, prefix=settings.API_V1_STR)
+app.include_router(sales_router, prefix=settings.API_V1_STR)
+
 
 if __name__ == "__main__":
     import uvicorn
