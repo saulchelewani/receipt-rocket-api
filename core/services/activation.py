@@ -48,8 +48,13 @@ def activate_terminal(code: str, tenant: Tenant, db: Session, x_mac_address: str
     )
     db.add(terminal)
 
-
     for tax in config["globalConfiguration"]["taxrates"]:
+        db_rate = db.query(TaxRate).filter(TaxRate.name == tax["name"]).first()
+        if db_rate:
+            db_rate.rate = tax["rate"]
+            db_rate.charge_mode = tax["chargeMode"]
+            db_rate.rate_id = tax["id"]
+            continue
         tax_rate = TaxRate(
             rate_id=tax["id"],
             name=tax["name"],

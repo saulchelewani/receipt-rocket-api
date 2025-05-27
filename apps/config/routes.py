@@ -85,10 +85,7 @@ def save_tax_payer_config(db: Session, terminal: Terminal, tax_payer_config: dic
         'activated_tax_rate_ids': tax_payer_config['activatedTaxRateIds']
     }
     if not profile:
-        profile = Profile(**profile_dict,
-                          tenant_id=terminal.tenant_id,
-
-                          )
+        profile = Profile(**profile_dict, tenant_id=terminal.tenant_id)
         db.add(profile)
     else:
         for key, value in profile_dict.items():
