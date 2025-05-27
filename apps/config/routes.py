@@ -41,19 +41,19 @@ async def get_config(terminal_id: UUID, user: User = Depends(get_current_user), 
 def save_tax_rates(db: Session, tax_rates: list[dict]) -> None:
     for rate_data in tax_rates:
         try:
+            rate_dict = {
+                'rate_id': rate_data['id'],
+                'name': rate_data['name'],
+                'rate': rate_data.get('rate'),
+                'ordinal': rate_data.get('ordinal', 0),
+                'charge_mode': rate_data.get('chargeMode', 'G')
+            }
             existing_rate = db.query(TaxRate).filter(TaxRate.name == rate_data["name"]).first()
             if existing_rate:
-                setattr(existing_rate, 'rate', rate_data.get('rate'))
-                setattr(existing_rate, 'ordinal', rate_data.get('ordinal', 0))
-                setattr(existing_rate, 'charge_mode', rate_data.get('chargeMode', 'G'))
+                for key, value in rate_dict.items():
+                    setattr(existing_rate, key, value)
             else:
-                tax_rate = TaxRate(
-                    rate_id=rate_data['id'],
-                    name=rate_data['name'],
-                    rate=rate_data.get('rate'),
-                    ordinal=rate_data.get('ordinal', 0),
-                    charge_mode=rate_data.get('chargeMode', 'G')
-                )
+                tax_rate = TaxRate(**rate_dict)
                 db.add(tax_rate)
             db.commit()
         except Exception as e:
@@ -62,14 +62,18 @@ def save_tax_rates(db: Session, tax_rates: list[dict]) -> None:
 
 
 def save_terminal_config(db: Session, terminal, terminal_config: dict) -> None:
-    setattr(terminal, 'trading_name', terminal_config['tradingName'])
-    setattr(terminal, 'email', terminal_config['emailAddress'])
-    setattr(terminal, 'phone_number', terminal_config['phoneNumber'])
-    setattr(terminal, 'label', terminal_config['terminalLabel'])
-    setattr(terminal, 'version', terminal_config['versionNo'])
-    setattr(terminal, 'address_lines', terminal_config['addressLines'])
-    setattr(terminal, 'offline_limit_hours', terminal_config['offlineLimit']['maxTransactionAgeInHours'])
-    setattr(terminal, 'offline_limit_amount', terminal_config['offlineLimit']['maxCummulativeAmount'])
+    terminal_dict = {
+        'trading_name': terminal_config['tradingName'],
+        'email': terminal_config['emailAddress'],
+        'phone_number': terminal_config['phoneNumber'],
+        'label': terminal_config['terminalLabel'],
+        'version': terminal_config['versionNo'],
+        'address_lines': terminal_config['addressLines'],
+        'offline_limit_hours': terminal_config['offlineLimit']['maxTransactionAgeInHours'],
+        'offline_limit_amount': terminal_config['offlineLimit']['maxCummulativeAmount']
+    }
+    for key, value in terminal_dict.items():
+        setattr(terminal, key, value)
 
     db.commit()
 

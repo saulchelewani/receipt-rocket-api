@@ -35,17 +35,19 @@ def activate_terminal(code: str, tenant: Tenant, db: Session, x_mac_address: str
     terminal_data = result["activatedTerminal"]
     config = result["configuration"]
 
-    terminal = Terminal(
-        terminal_id=terminal_data["terminalId"],
-        secret_key=terminal_data["terminalCredentials"]["secretKey"],
-        tenant_id=tenant.id,
-        label=config["terminalConfiguration"]["terminalLabel"],
-        email=config["terminalConfiguration"]["emailAddress"],
-        phone_number=config["terminalConfiguration"]["phoneNumber"],
-        trading_name=config["terminalConfiguration"]["tradingName"],
-        version=config["terminalConfiguration"]["versionNo"],
-        address_lines=config["terminalConfiguration"]["addressLines"],
-    )
+    terminal_dict = {
+        'terminal_id': terminal_data["terminalId"],
+        'secret_key': terminal_data["terminalCredentials"]["secretKey"],
+        'tenant_id': tenant.id,
+        'label': config["terminalConfiguration"]["terminalLabel"],
+        'email': config["terminalConfiguration"]["emailAddress"],
+        'phone_number': config["terminalConfiguration"]["phoneNumber"],
+        'trading_name': config["terminalConfiguration"]["tradingName"],
+        'version': config["terminalConfiguration"]["versionNo"],
+        'address_lines': config["terminalConfiguration"]["addressLines"]
+    }
+
+    terminal = Terminal(**terminal_dict)
     db.add(terminal)
 
     for tax in config["globalConfiguration"]["taxrates"]:
