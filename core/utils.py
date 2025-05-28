@@ -49,4 +49,9 @@ def sign_hmac_sha512(message: str, secret_key: str) -> str:
 
 
 def create_fake_mac_address() -> str:
+    """
+    Generate a random MAC address in the format XX:XX:XX:XX:XX:XX.
+
+    :return: A random MAC address in the format XX:XX:XX:XX:XX:XX.
+    """
     return rstr.xeger(r'^([0-9A-Fa-f]{2}([-:])){5}([0-9A-Fa-f]{2})$')
