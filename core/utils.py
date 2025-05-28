@@ -3,7 +3,8 @@ import hashlib
 import hmac
 import secrets
 import string
-from typing import Any
+
+import rstr
 
 
 def get_sequence_number(length=16):
@@ -45,3 +46,7 @@ def sign_hmac_sha512(message: str, secret_key: str) -> str:
 
     signature = hmac.new(byte_key, byte_message, hashlib.sha512).digest()
     return base64.b64encode(signature).decode('utf-8')
+
+
+def create_fake_mac_address() -> str:
+    return rstr.xeger(r'^([0-9A-Fa-f]{2}([-:])){5}([0-9A-Fa-f]{2})$')

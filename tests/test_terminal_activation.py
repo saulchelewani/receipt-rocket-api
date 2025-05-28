@@ -1,9 +1,9 @@
 import pytest
 import respx
-import rstr
 from httpx import Response
 
 from core.settings import settings
+from core.utils import create_fake_mac_address
 from tests.conftest import get_test_file
 
 activation_response = {
@@ -77,7 +77,7 @@ def test_activate_terminal_mocked(client, auth_header):
         "/api/v1/activation/activate",
         headers={
             "Authorization": auth_header["Authorization"],
-            "x-mac-address": rstr.xeger(r'^([0-9A-Fa-f]{2}([-:])){5}([0-9A-Fa-f]{2})$'),
+            "x-mac-address": create_fake_mac_address(),
         }, json={"terminal_activation_code": "MOCK-CODE-1234"})
 
     assert response.status_code == 200
@@ -104,7 +104,7 @@ def test_activate_terminal_mock_failure(client, auth_header):
         "/api/v1/activation/activate",
         headers={
             "Authorization": auth_header["Authorization"],
-            "x-mac-address": rstr.xeger(r'^([0-9A-Fa-f]{2}([-:])){5}([0-9A-Fa-f]{2})$'),
+            "x-mac-address": create_fake_mac_address(),
         },
         json={"terminal_activation_code": "MOCK-CODE-1234"})
 
@@ -125,7 +125,7 @@ def test_confirm_activation(client, auth_header, test_terminal):
         "/api/v1/activation/confirm",
         headers={
             "Authorization": auth_header["Authorization"],
-            "x-mac-address": rstr.xeger(r'^([0-9A-Fa-f]{2}([-:])){5}([0-9A-Fa-f]{2})$'),
+            "x-mac-address": create_fake_mac_address(),
         },
         json={"terminal_id": str(test_terminal.id)}
     )
@@ -146,7 +146,7 @@ def test_confirm_activation_failure(client, auth_header, test_terminal):
         "/api/v1/activation/confirm",
         headers={
             "Authorization": auth_header["Authorization"],
-            "x-mac-address": rstr.xeger(r'^([0-9A-Fa-f]{2}([-:])){5}([0-9A-Fa-f]{2})$'),
+            "x-mac-address": create_fake_mac_address(),
         },
         json={"terminal_id": str(test_terminal.id)}
     )
