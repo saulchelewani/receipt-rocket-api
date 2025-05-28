@@ -2,6 +2,7 @@ import pytest
 import respx
 from httpx import Response
 
+from core.models import Terminal
 from core.settings import settings
 from core.utils import create_fake_mac_address
 from tests.conftest import get_test_file
@@ -69,7 +70,7 @@ fake_response = get_test_file("activation_response.json")
 
 @pytest.mark.asyncio
 @respx.mock
-def test_activate_terminal_mocked(client, auth_header):
+def test_activate_terminal_mocked(client, auth_header, test_db):
     respx.post(f"{settings.MRA_EIS_URL}/onboarding/activate-terminal").mock(
         return_value=Response(200, json=activation_response))
 
@@ -81,6 +82,8 @@ def test_activate_terminal_mocked(client, auth_header):
         }, json={"terminal_activation_code": "MOCK-CODE-1234"})
 
     assert response.status_code == 200
+    assert test_db.query(Terminal).count() == 1
+    assert test_db.query(Terminal).first().terminal_id == "3a6d3703-1c39-41e8-98ce-b38d9574540d"
 
 
 @pytest.mark.asyncio
@@ -111,6 +114,7 @@ def test_activate_terminal_mock_failure(client, auth_header):
     assert response.status_code == 400
 
 
+
 @pytest.mark.asyncio
 @respx.mock
 def test_confirm_activation(client, auth_header, test_terminal):
@@ -130,6 +134,7 @@ def test_confirm_activation(client, auth_header, test_terminal):
         json={"terminal_id": str(test_terminal.id)}
     )
     assert response.status_code == 200
+    assert test_terminal.confirmed_at is not None
 
 
 @pytest.mark.asyncio
