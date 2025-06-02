@@ -89,7 +89,7 @@ async def has_permission(request: Request, current_user: User = Depends(get_curr
     path = route.path if route else path
     method = request.method
     route = db.query(Route).filter(Route.path == path, Route.method == method).first()
-    if not route or current_user.is_global or current_user.role in route.roles:
+    if not route or current_user.scope == Scope.GLOBAL or current_user.role in route.roles:
         return True
 
     raise HTTPException(status_code=403, detail="Forbidden")

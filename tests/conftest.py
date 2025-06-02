@@ -2,7 +2,7 @@ import os
 from datetime import timedelta
 
 import pytest
-from sqlalchemy import create_engine, StaticPool
+from sqlalchemy import create_engine, StaticPool, insert
 from sqlalchemy.orm import sessionmaker, Session
 from starlette.testclient import TestClient
 
@@ -10,7 +10,7 @@ from apps.main import app
 from core.auth import create_access_token
 from core.database import Base, get_db
 from core.enums import RoleEnum, Scope
-from core.models import Tenant, Role, User, Terminal, Profile
+from core.models import Tenant, Role, User, Terminal, Profile, role_route_association, Route
 from core.settings import settings
 
 # Use an in-memory SQLite database for testing
@@ -100,6 +100,57 @@ def auth_header_tenant_admin(test_tenant_admin, test_tenant: Tenant):
     return {"Authorization": f"Bearer {token}"}
 
 
+def create_role(test_db: Session, name: str) -> Role:
+    role = Role(name=name)
+    test_db.add(role)
+    test_db.commit()
+    test_db.refresh(role)
+    return role
+
+
+@pytest.fixture
+def test_role(test_db: Session) -> Role:
+    role = Role(name=RoleEnum.USER.value)
+    test_db.add(role)
+    test_db.commit()
+    test_db.refresh(role)
+    return role
+
+
+@pytest.fixture
+def test_admin_user(client, test_db: Session, test_tenant, test_user):
+    role = create_role(test_db, "admin")
+    test_user.role_id = role.id
+    test_db.commit()
+    return test_user
+
+
+@pytest.fixture
+def test_user_with_routes(client, test_db: Session, test_tenant, test_route, test_user):
+    stmt = insert(role_route_association).values(
+        role_id=test_user.role_id,
+        route_id=test_route.id
+    )
+    test_db.execute(stmt)
+    test_db.commit()
+    return test_user
+
+
+@pytest.fixture
+def auth_header_admin(test_admin_user, test_tenant: Tenant):
+    token = create_access_token(data={"sub": test_admin_user.email, "tenant_id": str(test_tenant.id)},
+                                expires_delta=timedelta(minutes=15))
+    return {"Authorization": f"Bearer {token}"}
+
+
+@pytest.fixture
+def test_route(test_db: Session) -> Route:
+    route = Route(path='/', method='GET', action='GET:/', name="Get user list")
+    test_db.add(route)
+    test_db.commit()
+    test_db.refresh(route)
+    return route
+
 @pytest.fixture
 def test_terminal(test_db: Session, test_tenant: Tenant):
     terminal = test_db.query(Terminal).first()
@@ -109,6 +160,7 @@ def test_terminal(test_db: Session, test_tenant: Tenant):
     test_db.commit()
     test_db.refresh(terminal)
     return terminal
+
 
 #
 # @pytest.fixture
@@ -170,6 +222,7 @@ def test_user(client, test_db: Session, test_tenant):
     user = User(
         email="user@example.com",
         hashed_password=settings.TEST_HASH,
+        name="John Doe",
         role_id=role.id,
         tenant_id=test_tenant.id
     )
@@ -177,6 +230,7 @@ def test_user(client, test_db: Session, test_tenant):
     test_db.commit()
     test_db.refresh(user)
     return user
+
 
 # @pytest.fixture
 # def test_non_admin_user(test_db: Session):
@@ -196,6 +250,7 @@ def test_profile(client, test_db: Session, test_tenant):
     test_db.refresh(profile)
     return profile
 
+
 def get_role(test_db: Session, role_name: str):
     role = test_db.query(Role).filter(Role.name == role_name).first()
     if not role:
@@ -203,6 +258,7 @@ def get_role(test_db: Session, role_name: str):
         test_db.add(role)
         test_db.commit()
     return role
+
 
 @pytest.fixture
 def test_global_admin(client, test_db: Session):
@@ -212,6 +268,7 @@ def test_global_admin(client, test_db: Session):
     user = User(
         email="global_admin@example.com",
         hashed_password=settings.TEST_HASH,
+        name="Global Admin",
         role_id=role.id,
         scope=Scope.GLOBAL
     )
@@ -221,12 +278,10 @@ def test_global_admin(client, test_db: Session):
     return user
 
 
-
 def get_test_file(filename: str):
     response_file_path = os.path.join(os.path.dirname(__file__), 'data', filename)
     with open(response_file_path, "r") as file:
         return file.read()
-
 
 #
 # def create_route(test_db: Session) -> Route:

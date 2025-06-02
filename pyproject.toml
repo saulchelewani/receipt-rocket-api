@@ -21,6 +21,8 @@ dependencies = [
     "python-jose",
     "httpx",
     "rstr",
-    "respx"
+    "respx",
+    "slowapi",
+    "pydantic[email]"
 ]
 
