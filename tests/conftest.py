@@ -180,7 +180,7 @@ def test_terminal(test_db: Session, test_tenant: Tenant):
 def test_tenant(test_db: Session):
     tenant = test_db.query(Tenant).first()
     if tenant: return tenant
-    tenant = Tenant(name="test", code="test")
+    tenant = Tenant(name="test", code="test", email="test@example.com", phone_number="0886265490")
     test_db.add(tenant)
     test_db.commit()
     test_db.refresh(tenant)

@@ -20,7 +20,6 @@ class UserCreate(UserBase):
 class AdminCreate(UserBase):
     role_id: UUID
     password: str
-    tenant_id: UUID | None = None
 
 
 class UserRead(UserBase):

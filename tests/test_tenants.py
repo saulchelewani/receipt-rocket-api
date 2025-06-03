@@ -6,12 +6,14 @@ def test_list_tenants(client, test_tenant, auth_header_global_admin):
 
 def test_create_tenant(client, auth_header_global_admin) -> None:
     response = client.post("/api/v1/tenants", headers=auth_header_global_admin,
-                           json={"name": "New Tenant", "code": "NT"})
+                           json={"name": "New Tenant", "code": "NT", "email": "test@example.com",
+                                 "phone_number": "0886265490"})
     assert response.status_code == 200
     assert response.json()["id"]
 
 
 def test_cannot_create_duplicate_tenant(client, auth_header_global_admin, test_tenant) -> None:
     response = client.post("/api/v1/tenants", headers=auth_header_global_admin,
-                           json={"name": test_tenant.name, "code": "test"})
+                           json={"name": test_tenant.name, "code": "test", "email": "test@example.com",
+                                 "phone_number": "265886265490"})
     assert response.status_code == 400

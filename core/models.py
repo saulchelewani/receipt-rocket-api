@@ -69,6 +69,8 @@ class Tenant(Model):
 
     name: Mapped[str] = Column(String, unique=True, index=True, nullable=False)
     code: Mapped[str] = Column(String, unique=True, index=True, nullable=False)
+    email: Mapped[str] = Column(String, nullable=True)
+    phone_number: Mapped[str] = Column(String, nullable=True)
 
     users: Mapped[list["User"]] = relationship("User", back_populates="tenant")
     profile: Mapped["Profile"] = relationship("Profile", back_populates="tenant")
