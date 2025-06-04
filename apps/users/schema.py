@@ -12,14 +12,11 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     role_id: UUID
-    is_global: bool = False
     password: str
-    tenant_id: UUID | None = None
 
 
 class AdminCreate(UserBase):
     role_id: UUID
-    password: str
 
 
 class UserRead(UserBase):

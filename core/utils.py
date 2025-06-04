@@ -54,4 +54,9 @@ def create_fake_mac_address() -> str:
 
     :return: A random MAC address in the format XX:XX:XX:XX:XX:XX.
     """
-    return rstr.xeger(r'^([0-9A-Fa-f]{2}([-:])){5}([0-9A-Fa-f]{2})$')
+    return rstr.xeger(mac_address_regex)
+
+
+phone_number_regex = r'^(\+?265|0)[89]{2}[0-9]{7}$'
+mac_address_regex = r'^([0-9A-Fa-f]{2}([-:])){5}([0-9A-Fa-f]{2})$'
+email_regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'

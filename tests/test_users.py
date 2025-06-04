@@ -37,7 +37,7 @@ def test_create_user(client, auth_header, test_role: Role):
 
 def test_create_admin(client, auth_header_global_admin, test_role: Role, test_tenant: Tenant):
     response = client.post(f"/api/v1/tenants/{test_tenant.id}/users",
-                           json={'email': 'test@example.com', "name": "John Doe", 'password': settings.TEST_SECRET,
+                           json={'email': 'test@example.com', "name": "John Doe",
                                  'role_id': str(test_role.id)},
                            headers=auth_header_global_admin)
     assert response.status_code == 201
