@@ -20,7 +20,7 @@ limiter = Limiter(key_func=get_remote_address)
 class AuthToken(BaseModel):
     access_token: str
     token_type: str
-    expiry: str
+    expiry: datetime
 
 
 @router.post("/login", response_model=AuthToken)

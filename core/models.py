@@ -45,6 +45,7 @@ class User(Model):
 
     email: Mapped[str] = Column(String, unique=True, index=True)
     name: Mapped[str] = Column(String, nullable=True)
+    phone_number: Mapped[str] = Column(String, nullable=False)
     hashed_password: Mapped[str] = Column(String, nullable=True)
     tenant_id: Mapped[UUID] = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=True)
     role_id: Mapped[UUID] = Column(UUID(as_uuid=True), ForeignKey("roles.id"))

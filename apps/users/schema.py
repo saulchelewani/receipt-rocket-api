@@ -1,18 +1,19 @@
 from uuid import UUID
 
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, constr
 
 from apps.roles.schema import RoleRead
+from core.utils import phone_number_regex
 
 
 class UserBase(BaseModel):
     email: EmailStr
     name: str
+    phone_number: constr(pattern=phone_number_regex)
 
 
 class UserCreate(UserBase):
     role_id: UUID
-    password: str
 
 
 class AdminCreate(UserBase):

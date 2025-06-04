@@ -204,6 +204,7 @@ def test_tenant_admin(client, test_db: Session, test_tenant, test_admin):
     user = User(
         email="admin@example.com",
         hashed_password=settings.TEST_HASH,
+        phone_number="0886265490",
         role_id=test_admin.id,
         tenant_id=test_tenant.id
     )
@@ -222,6 +223,7 @@ def test_user(client, test_db: Session, test_tenant):
     user = User(
         email="user@example.com",
         hashed_password=settings.TEST_HASH,
+        phone_number="0886265490",
         name="John Doe",
         role_id=role.id,
         tenant_id=test_tenant.id
@@ -268,6 +270,7 @@ def test_global_admin(client, test_db: Session):
     user = User(
         email="global_admin@example.com",
         hashed_password=settings.TEST_HASH,
+        phone_number="0886265490",
         name="Global Admin",
         role_id=role.id,
         scope=Scope.GLOBAL
