@@ -1,17 +1,19 @@
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel
+from pydantic import BaseModel, constr, EmailStr
+
+from core.utils import phone_number_regex
 
 
 class TerminalActivationRequest(BaseModel):
-    terminal_activation_code: str
+    terminal_activation_code: constr(pattern=r"([A-Z0-9]{4}-){3}[A-Z0-9]{4}")
 
 
 class TerminalConfigurationOut(BaseModel):
     label: str
-    email: str
-    phone: str
+    email: EmailStr
+    phone: constr(pattern=phone_number_regex)
     trading_name: str
 
 
@@ -34,6 +36,6 @@ class TerminalRead(BaseModel):
 class TerminalConfigurationRead(BaseModel):
     id: UUID
     label: str
-    email: str
-    phone_number: str
+    email: EmailStr
+    phone_number: constr(pattern=phone_number_regex)
     trading_name: str

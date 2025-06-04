@@ -79,7 +79,7 @@ def test_activate_terminal_mocked(client, auth_header, test_db):
         headers={
             "Authorization": auth_header["Authorization"],
             "x-mac-address": create_fake_mac_address(),
-        }, json={"terminal_activation_code": "MOCK-CODE-1234"})
+        }, json={"terminal_activation_code": "MOCK-CODE-1234-36ES"})
 
     assert response.status_code == 200
     assert test_db.query(Terminal).count() == 1
@@ -109,7 +109,7 @@ def test_activate_terminal_mock_failure(client, auth_header):
             "Authorization": auth_header["Authorization"],
             "x-mac-address": create_fake_mac_address(),
         },
-        json={"terminal_activation_code": "MOCK-CODE-1234"})
+        json={"terminal_activation_code": "MOCK-CODE-1234-2345"})
 
     assert response.status_code == 400
 
