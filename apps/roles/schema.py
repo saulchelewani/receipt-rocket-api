@@ -2,8 +2,6 @@ from uuid import UUID
 
 from pydantic import BaseModel
 
-from apps.routes.schema import RouteRead
-
 
 class RoleBase(BaseModel):
     name: str
@@ -15,7 +13,7 @@ class RoleCreate(RoleBase):
 
 
 class RoleRead(RoleBase):
-    routes: list[RouteRead]
+    # routes: list[RouteRead]
     id: UUID
 
     model_config = {

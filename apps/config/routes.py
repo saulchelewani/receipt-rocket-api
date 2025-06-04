@@ -3,6 +3,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from apps.config.schema import ConfigResponse
 from core.auth import get_current_user
 from core.database import get_db
 from core.models import User, TaxRate, Terminal, Profile
@@ -15,7 +16,7 @@ router = APIRouter(
 )
 
 
-@router.get("/{terminal_id}")
+@router.get("/{terminal_id}", response_model=ConfigResponse)
 async def get_config(terminal_id: UUID, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     tenant = user.tenant
     if not tenant:
@@ -24,21 +25,28 @@ async def get_config(terminal_id: UUID, user: User = Depends(get_current_user), 
     config = await get_configuration()
 
     global_config = config["data"]["globalConfiguration"]
-    save_tax_rates(db, global_config.get("taxRates", []))
+    rates = save_tax_rates(db, global_config.get("taxRates", []))
 
     terminal = db.query(Terminal).filter(Terminal.id == terminal_id).first()
     if not terminal:
         raise HTTPException(status_code=400, detail="Terminal not found")
 
     terminal_config = config["data"]["terminalConfiguration"]
-    save_terminal_config(db, terminal, terminal_config)
+    db_terminal = save_terminal_config(db, terminal, terminal_config)
 
     tax_payer_config = config["data"]["taxpayerConfiguration"]
-    save_tax_payer_config(db, terminal, tax_payer_config)
-    return config
+    profile = save_tax_payer_config(db, terminal, tax_payer_config)
+
+    response = {
+        "tax_rates": rates,
+        "tax_payer": profile,
+        "terminal": db_terminal
+    }
+    return response
 
 
-def save_tax_rates(db: Session, tax_rates: list[dict]) -> None:
+def save_tax_rates(db: Session, tax_rates: list[dict]) -> list[TaxRate]:
+    rates = []
     for rate_data in tax_rates:
         try:
             rate_dict = {
@@ -54,14 +62,16 @@ def save_tax_rates(db: Session, tax_rates: list[dict]) -> None:
                     setattr(existing_rate, key, value)
             else:
                 tax_rate = TaxRate(**rate_dict)
+                rates.append(tax_rate)
                 db.add(tax_rate)
             db.commit()
         except Exception as e:
             db.rollback()
             raise HTTPException(status_code=500, detail=str(e))
+    return rates
 
 
-def save_terminal_config(db: Session, terminal, terminal_config: dict) -> None:
+def save_terminal_config(db: Session, terminal, terminal_config: dict) -> Terminal:
     terminal_dict = {
         'trading_name': terminal_config['tradingName'],
         'email': terminal_config['emailAddress'],
@@ -76,9 +86,10 @@ def save_terminal_config(db: Session, terminal, terminal_config: dict) -> None:
         setattr(terminal, key, value)
 
     db.commit()
+    return terminal
 
 
-def save_tax_payer_config(db: Session, terminal: Terminal, tax_payer_config: dict) -> None:
+def save_tax_payer_config(db: Session, terminal: Terminal, tax_payer_config: dict) -> Profile:
     profile = terminal.tenant.profile
     profile_dict = {
         'tin': tax_payer_config['tin'],
@@ -96,3 +107,4 @@ def save_tax_payer_config(db: Session, terminal: Terminal, tax_payer_config: dic
             setattr(profile, key, value)
 
     db.commit()
+    return profile
