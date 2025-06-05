@@ -151,8 +151,9 @@ class Product(Model):
     item_id: Mapped[str] = Column(UUID(as_uuid=True), ForeignKey("items.id"), nullable=False)
     tenant_id: Mapped[UUID] = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
     description: Mapped[str] = Column(String)
-    unit_price: Mapped[float] = Column(Float)
+    unit_price: Mapped[float] = Column(Float, nullable=False)
     quantity: Mapped[int]
+    code: Mapped[str] = Column(String)
 
     item: Mapped["Item"] = relationship("Item", back_populates="products")
     tenant: Mapped["Tenant"] = relationship("Tenant", back_populates="products")

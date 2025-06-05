@@ -170,7 +170,8 @@ def test_terminal(test_db: Session, test_tenant: Tenant):
 def test_product(test_db: Session, test_tenant: Tenant, test_item: Item):
     product = test_db.query(Product).filter(Product.tenant_id == test_tenant.id).first()
     if product: return product
-    product = Product(tenant_id=test_tenant.id, quantity=10, item_id=test_item.id)
+    product = Product(tenant_id=test_tenant.id, quantity=10, item_id=test_item.id, code=test_item.code,
+                      unit_price=100, )
     test_db.add(product)
     test_db.commit()
     test_db.refresh(product)

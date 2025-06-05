@@ -9,7 +9,7 @@ from starlette import status
 from apps.sales.schema import TransactionRequest
 from core.auth import get_current_user
 from core.database import get_db
-from core.models import User, Terminal, GlobalConfig
+from core.models import User, Terminal, GlobalConfig, Product
 from core.utils import generate_invoice_number
 
 router = APIRouter(
@@ -36,6 +36,54 @@ async def submit_a_transaction(
     if not global_config:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Config is not saved")
 
+    tax_breakdown = {}
+    total_vat = 0
+    invoice_total = 0
+    line_items = []
+
+    for item in request.invoice_line_items:
+        product = db.query(Product).filter(Product.code == item.product_code).first()
+        if not product:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Product not found")
+
+        # TODO fetch tax rate
+
+        rate_id = item.tax_rate_id
+        taxable_amount = product.unit_price * item.quantity
+        tax_amount = taxable_amount * item.tax_rate
+
+        if rate_id not in tax_breakdown:
+            tax_breakdown[rate_id] = {
+                "taxableAmount": 0,
+                "taxAmount": 0
+            }
+
+        tax_breakdown[rate_id]["taxableAmount"] += taxable_amount
+        tax_breakdown[rate_id]["taxAmount"] += tax_amount
+        total_vat += tax_amount
+        invoice_total += item.total
+
+        line_items.append({
+            "id": 0,
+            "productCode": item.product_code,
+            "description": product.description,
+            "unitPrice": product.unit_price,
+            "quantity": item.quantity,
+            "discount": 0,
+            "total": 0,
+            "totalVAT": tax_amount,
+            "taxRateId": "string",
+            "isProduct": True
+        })
+
+    tax_breakdown_list = []
+    for rate_id, breakdown in tax_breakdown.items():
+        tax_breakdown_list.append({
+            "rateId": rate_id,
+            "taxableAmount": breakdown["taxableAmount"],
+            "taxAmount": breakdown["taxAmount"]
+        })
+
     invoice = {
         "invoiceHeader": {
             "invoiceNumber": generate_invoice_number(),
@@ -55,33 +103,14 @@ async def submit_a_transaction(
                 "certificateNumber": "string",
                 "quantity": 0
             },
-            "paymentMethod": "string"
+            "paymentMethod": request.payment_method
         },
-        "invoiceLineItems": [
-            {
-                "id": 0,
-                "productCode": "string",
-                "description": "string",
-                "unitPrice": 0,
-                "quantity": 0,
-                "discount": 0,
-                "total": 0,
-                "totalVAT": 0,
-                "taxRateId": "string",
-                "isProduct": True
-            }
-        ],
+        "invoiceLineItems": line_items,
         "invoiceSummary": {
-            "taxBreakDown": [
-                {
-                    "rateId": "string",
-                    "taxableAmount": 0,
-                    "taxAmount": 0
-                }
-            ],
-            "totalVAT": 0,
+            "taxBreakDown": tax_breakdown_list,
+            "totalVAT": total_vat,
             "offlineSignature": "string",
-            "invoiceTotal": 0
+            "invoiceTotal": invoice_total
         }
     }
 

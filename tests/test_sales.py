@@ -18,6 +18,6 @@ def test_make_a_sale(client, auth_header_global_admin, test_terminal, test_produ
                 "is_product": True
             }
         ]
-
     })
+
     # assert response.status_code == 400
