@@ -35,6 +35,21 @@ def activate_terminal(code: str, tenant: Tenant, db: Session, x_mac_address: str
     terminal_data = result["activatedTerminal"]
     config = result["configuration"]
 
+    tenant_dict = {
+        'version': config["taxpayerConfiguration"]["versionNo"],
+        'tin': config["taxpayerConfiguration"]["tin"],
+        'vat_registered': config["taxpayerConfiguration"]["isVATRegistered"],
+        'tax_office_code': config["taxpayerConfiguration"]["taxOfficeCode"],
+        'tax_office_name': config["taxpayerConfiguration"]["taxOffice"]["name"],
+        'activated_tax_rate_ids': config["taxpayerConfiguration"]["activatedTaxRateIds"],
+    }
+
+    for key, value in tenant_dict.items():
+        setattr(tenant, key, value)
+
+    db.commit()
+    db.refresh(tenant)
+
     terminal_dict = {
         'terminal_id': terminal_data["terminalId"],
         'secret_key': terminal_data["terminalCredentials"]["secretKey"],
@@ -58,7 +73,6 @@ def activate_terminal(code: str, tenant: Tenant, db: Session, x_mac_address: str
         db.add(db_global_config)
         db.commit()
         db.refresh(db_global_config)
-
 
     for tax in config["globalConfiguration"]["taxrates"]:
         db_rate = db.query(TaxRate).filter(TaxRate.name == tax["name"]).first()

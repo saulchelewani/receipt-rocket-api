@@ -73,6 +73,11 @@ class Tenant(Model):
     email: Mapped[str] = Column(String, nullable=True)
     phone_number: Mapped[str] = Column(String, nullable=True)
     tin: Mapped[str] = Column(String, nullable=True)
+    version: Mapped[int] = Column(Integer, nullable=True)
+    vat_registered: Mapped[bool] = Column(Boolean, nullable=True)
+    activated_tax_rate_ids: Mapped[list[str]] = Column(JSON, nullable=True)
+    tax_office_code: Mapped[str] = Column(String, nullable=True)
+    tax_office_name: Mapped[str] = Column(String, nullable=True)
 
     users: Mapped[list["User"]] = relationship("User", back_populates="tenant")
     profile: Mapped["Profile"] = relationship("Profile", back_populates="tenant")
@@ -95,12 +100,6 @@ class Profile(Model):
     __tablename__ = "profiles"
 
     tenant_id: Mapped[UUID] = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
-    tin: Mapped[str] = Column(String, nullable=True)
-    version: Mapped[str] = Column(String, nullable=True)
-    vat_registered: Mapped[bool] = Column(Boolean, nullable=True)
-    activated_tax_rate_ids: Mapped[list[str]] = Column(JSON, nullable=True)
-    tax_office_code: Mapped[str] = Column(String, nullable=True)
-    tax_office_name: Mapped[str] = Column(String, nullable=True)
 
     tenant: Mapped["Tenant"] = relationship("Tenant", back_populates="profile")
 
@@ -124,7 +123,7 @@ class Terminal(Model):
     email: Mapped[str] = Column(String, nullable=True)
     phone_number: Mapped[str] = Column(String)
     label: Mapped[str] = Column(String, nullable=True)
-    version: Mapped[str] = Column(Integer, nullable=True)
+    version: Mapped[int] = Column(Integer, nullable=True)
     address_lines: Mapped[list[str]] = Column(JSON, nullable=True)
     offline_limit_hours: Mapped[int] = Column(Integer, nullable=True)
     offline_limit_amount: Mapped[float] = Column(Float, nullable=True)

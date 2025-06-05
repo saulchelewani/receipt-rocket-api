@@ -13,5 +13,4 @@ async def get_configuration():
             f"{settings.MRA_EIS_URL}/api/v1/configuration/get-latest-configs",
             headers=headers)
 
-        print(response.json())
     return response.json()

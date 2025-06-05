@@ -9,7 +9,7 @@ from starlette import status
 from apps.sales.schema import TransactionRequest
 from core.auth import get_current_user
 from core.database import get_db
-from core.models import User, Terminal
+from core.models import User, Terminal, GlobalConfig
 from core.utils import generate_invoice_number
 
 router = APIRouter(
@@ -32,6 +32,10 @@ async def submit_a_transaction(
     if not terminal.tenant.tin:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Config is not saved")
 
+    global_config = db.query(GlobalConfig).first()
+    if not global_config:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Config is not saved")
+
     invoice = {
         "invoiceHeader": {
             "invoiceNumber": generate_invoice_number(),
@@ -41,9 +45,9 @@ async def submit_a_transaction(
             "buyerName": request.buyer_name,
             "buyerAuthorizationCode": request.buyer_authorization_code,
             "siteId": "string",
-            "globalConfigVersion": 0,
-            "taxpayerConfigVersion": 0,
-            "terminalConfigVersion": 0,
+            "globalConfigVersion": global_config.version,
+            "taxpayerConfigVersion": terminal.tenant.version,
+            "terminalConfigVersion": terminal.version,
             "isReliefSupply": request.is_relief_supply,
             "vat5CertificateDetails": {
                 "id": 0,

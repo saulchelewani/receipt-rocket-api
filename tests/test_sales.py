@@ -7,6 +7,9 @@ def test_make_a_sale(client, auth_header_global_admin, test_terminal, test_produ
         "x-device-id": test_terminal.device_id,
     }, json={
         "payment_method": PaymentMethod.MOBILE_MONEY,
+        "buyer_name": "John Doe",
+        "buyer_tin": "1234567890",
+        "buyer_authorization_code": "1234567890",
         "invoice_line_items": [
             {
                 "product_code": test_product.item.code,
@@ -17,5 +20,4 @@ def test_make_a_sale(client, auth_header_global_admin, test_terminal, test_produ
         ]
 
     })
-    # print(response.json())
     # assert response.status_code == 400

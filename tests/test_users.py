@@ -30,7 +30,6 @@ def test_create_user(client, auth_header, test_role: Role):
                            json={'email': 'test@example.com', "name": "John Doe", "phone_number": "0886265490",
                                  'role_id': str(test_role.id)},
                            headers=auth_header)
-    print(response.json())
     assert response.status_code == 201
     assert response.json()['email'] == 'test@example.com'
 
@@ -40,7 +39,6 @@ def test_create_admin(client, auth_header_global_admin, test_role: Role, test_te
                            json={'email': 'test@example.com', "name": "John Doe", "phone_number": "0886265490",
                                  'role_id': str(test_role.id)},
                            headers=auth_header_global_admin)
-    print(response.json())
     assert response.status_code == 201
     assert response.json()['email'] == 'test@example.com'
 
@@ -56,7 +54,6 @@ def test_create_user_already_exists(client, auth_header, test_role: Role, test_u
                            json={'email': test_user.email, 'name': 'John Doe', "phone_number": "0886265490",
                                  'role_id': str(test_role.id)},
                            headers=auth_header)
-    print(response.json())
     assert response.status_code == 400
     assert response.json()['detail'] == 'Email already registered'
 
