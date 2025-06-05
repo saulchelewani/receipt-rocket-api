@@ -3,6 +3,7 @@ import hashlib
 import hmac
 import secrets
 import string
+from datetime import datetime
 
 import rstr
 
@@ -60,3 +61,7 @@ def create_fake_mac_address() -> str:
 phone_number_regex = r'^(\+?265|0)[89]{2}[0-9]{7}$'
 mac_address_regex = r'^([0-9A-Fa-f]{2}([-:])){5}([0-9A-Fa-f]{2})$'
 email_regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+
+
+def generate_invoice_number():
+    return "INV" + datetime.now().strftime("%Y%m%d%H%M%S")

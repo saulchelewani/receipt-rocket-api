@@ -2,7 +2,7 @@ import pytest
 import respx
 from httpx import Response
 
-from core.models import TaxRate, Terminal, Profile
+from core.models import TaxRate, Terminal, Tenant
 from core.settings import settings
 
 config_response = {
@@ -79,4 +79,4 @@ def test_get_new_config(client, auth_header, test_db, test_terminal):
     assert response.status_code == 200
     assert test_db.query(TaxRate).count() == 3
     assert test_db.get(Terminal, test_terminal.id).phone_number == '+265888123456'
-    assert test_db.query(Profile).filter(Profile.tenant_id == test_terminal.tenant_id).first().tin == '20202020'
+    assert test_db.query(Tenant).filter(Tenant.id == test_terminal.tenant_id).first().tin == '20202020'

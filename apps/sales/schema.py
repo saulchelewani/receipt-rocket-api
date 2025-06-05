@@ -1,7 +1,7 @@
 from datetime import datetime
 from enum import Enum
 
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, field_validator, conlist
 
 
 class PaymentMethod(str, Enum):
@@ -9,16 +9,17 @@ class PaymentMethod(str, Enum):
     CARD = "card"
     CHECK = "check"
     BANK_TRANSFER = "bank_transfer"
+    MOBILE_MONEY = "mobile_money"
 
 
 class InvoiceLineItem(BaseModel):
     product_code: str
-    description: str
-    unit_price: float
+    # description: str
+    # unit_price: float
     quantity: int
-    discount: float
-    total: float
-    total_vat: float
+    discount: float = 0
+    # total: float
+    # total_vat: float
     tax_rate_id: str
     is_product: bool
 
@@ -29,7 +30,7 @@ class TransactionRequest(BaseModel):
     buyer_authorization_code: str | None = None
     is_relief_supply: bool | None = False
     payment_method: PaymentMethod
-    invoice_line_items: list[InvoiceLineItem]
+    invoice_line_items: conlist(InvoiceLineItem, min_length=1)
 
     @field_validator("payment_method")
     def validate_payment_method(cls, value):

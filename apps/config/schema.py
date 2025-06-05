@@ -2,6 +2,8 @@ from uuid import UUID
 
 from pydantic import BaseModel
 
+from apps.tenants.schema import TenantRead
+
 
 class TaxRateRead(BaseModel):
     rate_id: str
@@ -36,5 +38,5 @@ class TerminalRead(BaseModel):
 
 class ConfigResponse(BaseModel):
     tax_rates: list[TaxRateRead]
-    tax_payer: TaxPayerRead
+    tax_payer: TenantRead
     terminal: TerminalRead

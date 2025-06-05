@@ -72,10 +72,12 @@ class Tenant(Model):
     code: Mapped[str] = Column(String, unique=True, index=True, nullable=False)
     email: Mapped[str] = Column(String, nullable=True)
     phone_number: Mapped[str] = Column(String, nullable=True)
+    tin: Mapped[str] = Column(String, nullable=True)
 
     users: Mapped[list["User"]] = relationship("User", back_populates="tenant")
     profile: Mapped["Profile"] = relationship("Profile", back_populates="tenant")
     terminals: Mapped[list["Terminal"]] = relationship("Terminal", back_populates="tenant")
+    products: Mapped[list["Product"]] = relationship("Product", back_populates="tenant")
 
 
 class Route(Model):
@@ -126,6 +128,7 @@ class Terminal(Model):
     address_lines: Mapped[list[str]] = Column(JSON, nullable=True)
     offline_limit_hours: Mapped[int] = Column(Integer, nullable=True)
     offline_limit_amount: Mapped[float] = Column(Float, nullable=True)
+    device_id: Mapped[str] = Column(String, nullable=True)
 
     tenant: Mapped["Tenant"] = relationship("Tenant", back_populates="terminals")
 
@@ -138,3 +141,37 @@ class TaxRate(Model):
     rate: Mapped[float | None] = Column(Float, nullable=True)
     ordinal: Mapped[int] = Column(Integer)
     charge_mode: Mapped[str] = Column(String)
+    global_config_id: Mapped[UUID] = Column(UUID(as_uuid=True), ForeignKey("global_config.id"), nullable=False)
+
+    global_config: Mapped["GlobalConfig"] = relationship("GlobalConfig", back_populates="tax_rates")
+
+
+class Product(Model):
+    __tablename__ = "products"
+
+    item_id: Mapped[str] = Column(UUID(as_uuid=True), ForeignKey("items.id"), nullable=False)
+    tenant_id: Mapped[UUID] = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
+    description: Mapped[str] = Column(String)
+    unit_price: Mapped[float] = Column(Float)
+    quantity: Mapped[int]
+
+    item: Mapped["Item"] = relationship("Item", back_populates="products")
+    tenant: Mapped["Tenant"] = relationship("Tenant", back_populates="products")
+
+
+class Item(Model):
+    __tablename__ = "items"
+
+    code: Mapped[str] = Column(String, nullable=False)
+    name: Mapped[str] = Column(String, nullable=False)
+    description: Mapped[str] = Column(String, nullable=True)
+
+    products: Mapped[list["Product"]] = relationship("Product", back_populates="item")
+
+
+class GlobalConfig(Model):
+    __tablename__ = "global_config"
+
+    version: Mapped[int] = Column(Integer, nullable=False)
+
+    tax_rates: Mapped[list["TaxRate"]] = relationship("TaxRate", back_populates="global_config")

@@ -39,3 +39,4 @@ class TerminalConfigurationRead(BaseModel):
     email: EmailStr
     phone_number: constr(pattern=phone_number_regex)
     trading_name: str
+    device_id: constr(pattern=r"\w{16}")

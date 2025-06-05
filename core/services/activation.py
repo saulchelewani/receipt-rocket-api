@@ -2,9 +2,9 @@ import httpx
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
-from core.models import Terminal, TaxRate, Tenant
+from core.models import Terminal, TaxRate, Tenant, GlobalConfig
 from core.settings import settings
-from core.utils import sign_hmac_sha512
+from core.utils import sign_hmac_sha512, get_sequence_number
 
 
 def activate_terminal(code: str, tenant: Tenant, db: Session, x_mac_address: str | None = None):
@@ -44,11 +44,21 @@ def activate_terminal(code: str, tenant: Tenant, db: Session, x_mac_address: str
         'phone_number': config["terminalConfiguration"]["phoneNumber"],
         'trading_name': config["terminalConfiguration"]["tradingName"],
         'version': config["terminalConfiguration"]["versionNo"],
-        'address_lines': config["terminalConfiguration"]["addressLines"]
+        'address_lines': config["terminalConfiguration"]["addressLines"],
+        'device_id': get_sequence_number(),
     }
 
     terminal = Terminal(**terminal_dict)
     db.add(terminal)
+
+    db_global_config = db.query(GlobalConfig).filter(
+        GlobalConfig.version == config["globalConfiguration"]["versionNo"]).first()
+    if not db_global_config:
+        db_global_config = GlobalConfig(version=config["globalConfiguration"]["versionNo"])
+        db.add(db_global_config)
+        db.commit()
+        db.refresh(db_global_config)
+
 
     for tax in config["globalConfiguration"]["taxrates"]:
         db_rate = db.query(TaxRate).filter(TaxRate.name == tax["name"]).first()
@@ -62,6 +72,7 @@ def activate_terminal(code: str, tenant: Tenant, db: Session, x_mac_address: str
             name=tax["name"],
             rate=tax["rate"],
             charge_mode=tax["chargeMode"],
+            global_config_id=db_global_config.id
         )
         db.add(tax_rate)
 

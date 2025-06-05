@@ -10,8 +10,10 @@ from apps.main import app
 from core.auth import create_access_token
 from core.database import Base, get_db
 from core.enums import RoleEnum, Scope
-from core.models import Tenant, Role, User, Terminal, Profile, role_route_association, Route
+from core.models import Tenant, Role, User, Terminal, Profile, role_route_association, Route, Product, Item, TaxRate, \
+    GlobalConfig
 from core.settings import settings
+from core.utils import get_sequence_number, get_random_number
 
 # Use an in-memory SQLite database for testing
 engine_test = create_engine(
@@ -151,17 +153,61 @@ def test_route(test_db: Session) -> Route:
     test_db.refresh(route)
     return route
 
+
 @pytest.fixture
 def test_terminal(test_db: Session, test_tenant: Tenant):
     terminal = test_db.query(Terminal).first()
     if terminal: return terminal
-    terminal = Terminal(terminal_id="test", secret_key=settings.SECRET_KEY, tenant_id=test_tenant.id)
+    terminal = Terminal(terminal_id="test", secret_key=settings.SECRET_KEY, tenant_id=test_tenant.id,
+                        device_id=get_sequence_number())
     test_db.add(terminal)
     test_db.commit()
     test_db.refresh(terminal)
     return terminal
 
 
+@pytest.fixture
+def test_product(test_db: Session, test_tenant: Tenant, test_item: Item):
+    product = test_db.query(Product).filter(Product.tenant_id == test_tenant.id).first()
+    if product: return product
+    product = Product(tenant_id=test_tenant.id, quantity=10, item_id=test_item.id)
+    test_db.add(product)
+    test_db.commit()
+    test_db.refresh(product)
+    return product
+
+
+@pytest.fixture
+def test_item(test_db: Session):
+    item = test_db.query(Item).first()
+    if item: return item
+    item = Item(code=get_random_number(), name="test")
+    test_db.add(item)
+    test_db.commit()
+    test_db.refresh(item)
+    return item
+
+
+@pytest.fixture
+def test_tax_rate(test_db: Session, test_global_config):
+    tax_rate = test_db.query(TaxRate).first()
+    if tax_rate: return tax_rate
+    tax_rate = TaxRate(name="VAT-A", rate=16.5, global_config_id=test_global_config.id)
+    test_db.add(tax_rate)
+    test_db.commit()
+    test_db.refresh(tax_rate)
+    return tax_rate
+
+
+@pytest.fixture
+def test_global_config(test_db: Session):
+    config = test_db.query(GlobalConfig).first()
+    if config: return config
+    config = GlobalConfig(version=1)
+    test_db.add(config)
+    test_db.commit()
+    test_db.refresh(config)
+    return config
 #
 # @pytest.fixture
 # def auth_header_non_admin(test_non_admin_user):
@@ -180,7 +226,7 @@ def test_terminal(test_db: Session, test_tenant: Tenant):
 def test_tenant(test_db: Session):
     tenant = test_db.query(Tenant).first()
     if tenant: return tenant
-    tenant = Tenant(name="test", code="test", email="test@example.com", phone_number="0886265490")
+    tenant = Tenant(name="test", code="test", email="test@example.com", phone_number="0886265490", tin="123456789")
     test_db.add(tenant)
     test_db.commit()
     test_db.refresh(tenant)

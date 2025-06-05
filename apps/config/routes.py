@@ -1,3 +1,4 @@
+from typing import Any
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -6,7 +7,7 @@ from sqlalchemy.orm import Session
 from apps.config.schema import ConfigResponse
 from core.auth import get_current_user
 from core.database import get_db
-from core.models import User, TaxRate, Terminal, Profile
+from core.models import User, TaxRate, Terminal, Tenant, GlobalConfig
 from core.services.config import get_configuration
 
 router = APIRouter(
@@ -25,7 +26,22 @@ async def get_config(terminal_id: UUID, user: User = Depends(get_current_user), 
     config = await get_configuration()
 
     global_config = config["data"]["globalConfiguration"]
-    rates = save_tax_rates(db, global_config.get("taxRates", []))
+    global_config_version = global_config["versionNo"]
+
+    db_global_config = db.query(GlobalConfig).filter(GlobalConfig.version == global_config_version).first()
+    if not db_global_config:
+        db_global_config = GlobalConfig(version=global_config_version)
+        db.add(db_global_config)
+        db.commit()
+        db.refresh(db_global_config)
+
+    db_tax_rates = db.query(TaxRate).filter(TaxRate.global_config_id == db_global_config.id).all()
+    if db_tax_rates:
+        for rate in db_tax_rates:
+            db.delete(rate)
+        db.commit()
+
+    rates = save_tax_rates(db, global_config.get("taxRates", []), db_global_config.id)
 
     terminal = db.query(Terminal).filter(Terminal.id == terminal_id).first()
     if not terminal:
@@ -35,7 +51,7 @@ async def get_config(terminal_id: UUID, user: User = Depends(get_current_user), 
     db_terminal = save_terminal_config(db, terminal, terminal_config)
 
     tax_payer_config = config["data"]["taxpayerConfiguration"]
-    profile = save_tax_payer_config(db, terminal, tax_payer_config)
+    profile = save_tax_payer_config(db, tenant, tax_payer_config)
 
     response = {
         "tax_rates": rates,
@@ -45,7 +61,7 @@ async def get_config(terminal_id: UUID, user: User = Depends(get_current_user), 
     return response
 
 
-def save_tax_rates(db: Session, tax_rates: list[dict]) -> list[TaxRate]:
+def save_tax_rates(db: Session, tax_rates: list[dict[str, Any]], config_id: UUID) -> list[TaxRate]:
     rates = []
     for rate_data in tax_rates:
         try:
@@ -54,7 +70,8 @@ def save_tax_rates(db: Session, tax_rates: list[dict]) -> list[TaxRate]:
                 'name': rate_data['name'],
                 'rate': rate_data.get('rate'),
                 'ordinal': rate_data.get('ordinal', 0),
-                'charge_mode': rate_data.get('chargeMode', 'G')
+                'charge_mode': rate_data.get('chargeMode', 'G'),
+                'global_config_id': config_id
             }
             existing_rate = db.query(TaxRate).filter(TaxRate.name == rate_data["name"]).first()
             if existing_rate:
@@ -89,8 +106,7 @@ def save_terminal_config(db: Session, terminal, terminal_config: dict) -> Termin
     return terminal
 
 
-def save_tax_payer_config(db: Session, terminal: Terminal, tax_payer_config: dict) -> Profile:
-    profile = terminal.tenant.profile
+def save_tax_payer_config(db: Session, tenant: Tenant, tax_payer_config: dict[str, Any]) -> Tenant:
     profile_dict = {
         'tin': tax_payer_config['tin'],
         'version': tax_payer_config['versionNo'],
@@ -99,12 +115,8 @@ def save_tax_payer_config(db: Session, terminal: Terminal, tax_payer_config: dic
         'tax_office_name': tax_payer_config['taxOffice']['name'],
         'activated_tax_rate_ids': tax_payer_config['activatedTaxRateIds']
     }
-    if not profile:
-        profile = Profile(**profile_dict, tenant_id=terminal.tenant_id)
-        db.add(profile)
-    else:
-        for key, value in profile_dict.items():
-            setattr(profile, key, value)
+    for key, value in profile_dict.items():
+        setattr(tenant, key, value)
 
     db.commit()
-    return profile
+    return tenant
