@@ -65,7 +65,6 @@ def save_tax_rates(db: Session, tax_rates: list[dict[str, Any]], config_id: UUID
     rates = []
     for rate_data in tax_rates:
         try:
-            print(rate_data)
             rate_dict = {
                 'rate_id': rate_data['id'],
                 'name': rate_data['name'],

@@ -76,7 +76,6 @@ def test_get_new_config(client, auth_header, test_db, test_terminal):
         return_value=Response(200, json=config_response))
 
     response = client.get(f"/api/v1/config/{str(test_terminal.id)}", headers=auth_header)
-    print(response.json())
     assert response.status_code == 200
     assert test_db.query(TaxRate).count() == 3
     assert test_db.get(Terminal, test_terminal.id).phone_number == '+265888123456'

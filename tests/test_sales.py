@@ -36,5 +36,4 @@ def test_make_a_sale(client, test_db, auth_header_global_admin, test_terminal, t
         ]
     })
 
-    print(response.json())
     # assert response.status_code == 400

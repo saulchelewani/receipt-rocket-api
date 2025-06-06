@@ -25,7 +25,6 @@ async def submit_a_transaction(
         request: TransactionRequest,
         x_device_id: Annotated[constr(pattern="^\w{16}$"), Header()],
         db: Session = Depends(get_db)):
-    # print(request)
 
     terminal = db.query(Terminal).filter(Terminal.device_id == x_device_id).first()
     if not terminal:
