@@ -135,9 +135,9 @@ class Terminal(Model):
 class TaxRate(Model):
     __tablename__ = "tax_rates"
 
-    rate_id: Mapped[str] = Column(String)
+    rate_id: Mapped[str] = Column(String, nullable=False)
     name: Mapped[str] = Column(String)
-    rate: Mapped[float | None] = Column(Float, nullable=True)
+    rate: Mapped[float | None] = Column(Float, nullable=False)
     ordinal: Mapped[int] = Column(Integer)
     charge_mode: Mapped[str] = Column(String)
     global_config_id: Mapped[UUID] = Column(UUID(as_uuid=True), ForeignKey("global_config.id"), nullable=False)
@@ -153,7 +153,7 @@ class Product(Model):
     description: Mapped[str] = Column(String)
     unit_price: Mapped[float] = Column(Float, nullable=False)
     quantity: Mapped[int]
-    code: Mapped[str] = Column(String)
+    code: Mapped[str] = Column(String, nullable=False)
 
     item: Mapped["Item"] = relationship("Item", back_populates="products")
     tenant: Mapped["Tenant"] = relationship("Tenant", back_populates="products")
@@ -165,6 +165,7 @@ class Item(Model):
     code: Mapped[str] = Column(String, nullable=False)
     name: Mapped[str] = Column(String, nullable=False)
     description: Mapped[str] = Column(String, nullable=True)
+    is_product: Mapped[bool] = Column(Boolean, default=True)
 
     products: Mapped[list["Product"]] = relationship("Product", back_populates="item")
 

@@ -1,3 +1,4 @@
+import uuid
 from datetime import datetime
 from typing import Annotated
 
@@ -9,7 +10,7 @@ from starlette import status
 from apps.sales.schema import TransactionRequest
 from core.auth import get_current_user
 from core.database import get_db
-from core.models import User, Terminal, GlobalConfig, Product
+from core.models import Terminal, GlobalConfig, Product, TaxRate
 from core.utils import generate_invoice_number
 
 router = APIRouter(
@@ -19,12 +20,13 @@ router = APIRouter(
 )
 
 
-@router.post("/")
+@router.post("/", dependencies=[Depends(get_current_user)])
 async def submit_a_transaction(
         request: TransactionRequest,
         x_device_id: Annotated[constr(pattern="^\w{16}$"), Header()],
-        user: User = Depends(get_current_user),
         db: Session = Depends(get_db)):
+    # print(request)
+
     terminal = db.query(Terminal).filter(Terminal.device_id == x_device_id).first()
     if not terminal:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Device ID is not recognized")
@@ -46,11 +48,16 @@ async def submit_a_transaction(
         if not product:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Product not found")
 
-        # TODO fetch tax rate
+        db_tax_rate = db.query(TaxRate).filter(TaxRate.id == item.tax_rate_id).first()
+        if not db_tax_rate:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Tax rate not found")
 
-        rate_id = item.tax_rate_id
-        taxable_amount = product.unit_price * item.quantity
-        tax_amount = taxable_amount * item.tax_rate
+        amount = product.unit_price * item.quantity
+
+        rate_id = db_tax_rate.rate_id
+        taxable_amount = amount / (1 + db_tax_rate.rate / 100)
+        taxable_unit_price = product.unit_price / (1 + db_tax_rate.rate / 100)
+        tax_amount = amount - taxable_amount
 
         if rate_id not in tax_breakdown:
             tax_breakdown[rate_id] = {
@@ -61,27 +68,27 @@ async def submit_a_transaction(
         tax_breakdown[rate_id]["taxableAmount"] += taxable_amount
         tax_breakdown[rate_id]["taxAmount"] += tax_amount
         total_vat += tax_amount
-        invoice_total += item.total
+        invoice_total += amount
 
         line_items.append({
-            "id": 0,
+            "id": uuid.uuid4(),
             "productCode": item.product_code,
-            "description": product.description,
-            "unitPrice": product.unit_price,
+            "description": product.item.name,
+            "unitPrice": round(taxable_unit_price, 2),
             "quantity": item.quantity,
             "discount": 0,
-            "total": 0,
-            "totalVAT": tax_amount,
-            "taxRateId": "string",
-            "isProduct": True
+            "total": round(taxable_amount, 2),
+            "totalVAT": round(tax_amount, 2),
+            "taxRateId": db_tax_rate.rate_id,
+            "isProduct": product.item.is_product
         })
 
     tax_breakdown_list = []
     for rate_id, breakdown in tax_breakdown.items():
         tax_breakdown_list.append({
             "rateId": rate_id,
-            "taxableAmount": breakdown["taxableAmount"],
-            "taxAmount": breakdown["taxAmount"]
+            "taxableAmount": round(breakdown["taxableAmount"], 2),
+            "taxAmount": round(breakdown["taxAmount"], 2),
         })
 
     invoice = {
@@ -92,7 +99,7 @@ async def submit_a_transaction(
             "buyerTIN": request.buyer_tin,
             "buyerName": request.buyer_name,
             "buyerAuthorizationCode": request.buyer_authorization_code,
-            "siteId": "string",
+            "siteId": None,
             "globalConfigVersion": global_config.version,
             "taxpayerConfigVersion": terminal.tenant.version,
             "terminalConfigVersion": terminal.version,
@@ -108,11 +115,11 @@ async def submit_a_transaction(
         "invoiceLineItems": line_items,
         "invoiceSummary": {
             "taxBreakDown": tax_breakdown_list,
-            "totalVAT": total_vat,
-            "offlineSignature": "string",
+            "totalVAT": round(total_vat, 2),
+            "offlineSignature": None,
             "invoiceTotal": invoice_total
         }
     }
 
-    print(invoice)
-    return request
+    # print(invoice)
+    return invoice

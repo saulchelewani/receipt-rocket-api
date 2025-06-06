@@ -15,14 +15,9 @@ class PaymentMethod(str, Enum):
 
 class InvoiceLineItem(BaseModel):
     product_code: str
-    # description: str
-    # unit_price: float
     quantity: int
     discount: float = 0
-    # total: float
-    # total_vat: float
     tax_rate_id: UUID
-    is_product: bool
 
 
 class TransactionRequest(BaseModel):

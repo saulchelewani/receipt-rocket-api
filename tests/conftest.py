@@ -171,7 +171,7 @@ def test_product(test_db: Session, test_tenant: Tenant, test_item: Item):
     product = test_db.query(Product).filter(Product.tenant_id == test_tenant.id).first()
     if product: return product
     product = Product(tenant_id=test_tenant.id, quantity=10, item_id=test_item.id, code=test_item.code,
-                      unit_price=100, )
+                      unit_price=100, description=test_item.description)
     test_db.add(product)
     test_db.commit()
     test_db.refresh(product)
@@ -182,7 +182,7 @@ def test_product(test_db: Session, test_tenant: Tenant, test_item: Item):
 def test_item(test_db: Session):
     item = test_db.query(Item).first()
     if item: return item
-    item = Item(code=get_random_number(), name="test")
+    item = Item(code=get_random_number(), name="Salima Sugar 1kg", description="Salima Sugar 1kg")
     test_db.add(item)
     test_db.commit()
     test_db.refresh(item)
@@ -193,7 +193,7 @@ def test_item(test_db: Session):
 def test_tax_rate(test_db: Session, test_global_config):
     tax_rate = test_db.query(TaxRate).first()
     if tax_rate: return tax_rate
-    tax_rate = TaxRate(name="VAT-A", rate=16.5, global_config_id=test_global_config.id)
+    tax_rate = TaxRate(name="VAT-A", rate=16.5, global_config_id=test_global_config.id, rate_id="A")
     test_db.add(tax_rate)
     test_db.commit()
     test_db.refresh(tax_rate)
@@ -227,7 +227,8 @@ def test_global_config(test_db: Session):
 def test_tenant(test_db: Session):
     tenant = test_db.query(Tenant).first()
     if tenant: return tenant
-    tenant = Tenant(name="test", code="test", email="test@example.com", phone_number="0886265490", tin="123456789",
+    tenant = Tenant(name="test", code="test", email="test@example.com", phone_number="0886265490",
+                    tin=get_random_number(9),
                     version=1)
     test_db.add(tenant)
     test_db.commit()
