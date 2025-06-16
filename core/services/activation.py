@@ -36,7 +36,7 @@ def activate_terminal(code: str, tenant: Tenant, db: Session, x_mac_address: str
     config = result["configuration"]
 
     tenant_dict = {
-        'version': config["taxpayerConfiguration"]["versionNo"],
+        'config_version': config["taxpayerConfiguration"]["versionNo"],
         'tin': config["taxpayerConfiguration"]["tin"],
         'vat_registered': config["taxpayerConfiguration"]["isVATRegistered"],
         'tax_office_code': config["taxpayerConfiguration"]["taxOfficeCode"],
@@ -58,9 +58,11 @@ def activate_terminal(code: str, tenant: Tenant, db: Session, x_mac_address: str
         'email': config["terminalConfiguration"]["emailAddress"],
         'phone_number': config["terminalConfiguration"]["phoneNumber"],
         'trading_name': config["terminalConfiguration"]["tradingName"],
-        'version': config["terminalConfiguration"]["versionNo"],
+        'config_version': config["terminalConfiguration"]["versionNo"],
         'address_lines': config["terminalConfiguration"]["addressLines"],
         'device_id': get_sequence_number(),
+        'site_id': config["terminalConfiguration"]["terminalSite"]["siteId"],
+        'site_name': config["terminalConfiguration"]["terminalSite"]["siteName"],
     }
 
     terminal = Terminal(**terminal_dict)

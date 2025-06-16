@@ -11,7 +11,7 @@ from apps.sales.schema import TransactionRequest
 from core.auth import get_current_user
 from core.database import get_db
 from core.models import Terminal, GlobalConfig, Product, TaxRate
-from core.utils import generate_invoice_number
+from core.utils import generate_invoice_number, calculate_tax
 
 router = APIRouter(
     prefix="/sales",
@@ -54,8 +54,8 @@ async def submit_a_transaction(
         amount = product.unit_price * item.quantity
 
         rate_id = db_tax_rate.rate_id
-        taxable_amount = amount / (1 + db_tax_rate.rate / 100)
-        taxable_unit_price = product.unit_price / (1 + db_tax_rate.rate / 100)
+        taxable_amount = calculate_tax(amount, db_tax_rate.rate)
+        taxable_unit_price = calculate_tax(product.unit_price, db_tax_rate.rate)
         tax_amount = amount - taxable_amount
 
         if rate_id not in tax_breakdown:
@@ -100,8 +100,8 @@ async def submit_a_transaction(
             "buyerAuthorizationCode": request.buyer_authorization_code,
             "siteId": None,
             "globalConfigVersion": global_config.version,
-            "taxpayerConfigVersion": terminal.tenant.version,
-            "terminalConfigVersion": terminal.version,
+            "taxpayerConfigVersion": terminal.tenant.config_version,
+            "terminalConfigVersion": terminal.config_version,
             "isReliefSupply": request.is_relief_supply,
             "vat5CertificateDetails": {
                 "id": 0,

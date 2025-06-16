@@ -158,7 +158,8 @@ def test_route(test_db: Session) -> Route:
 def test_terminal(test_db: Session, test_tenant: Tenant):
     terminal = test_db.query(Terminal).first()
     if terminal: return terminal
-    terminal = Terminal(terminal_id="test", secret_key=settings.SECRET_KEY, tenant_id=test_tenant.id, version=1,
+    terminal = Terminal(terminal_id="test", secret_key=settings.SECRET_KEY, tenant_id=test_tenant.id,
+                        config_version=1.0,
                         device_id=get_sequence_number())
     test_db.add(terminal)
     test_db.commit()
@@ -229,7 +230,7 @@ def test_tenant(test_db: Session):
     if tenant: return tenant
     tenant = Tenant(name="test", code="test", email="test@example.com", phone_number="0886265490",
                     tin=get_random_number(9),
-                    version=1)
+                    config_version=1.0)
     test_db.add(tenant)
     test_db.commit()
     test_db.refresh(tenant)

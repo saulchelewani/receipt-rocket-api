@@ -1,57 +1,77 @@
 {
-  "statusCode": 1,
-  "remark": "Terminal Activated, pending for confirmation request",
+  "statusCode": 0,
+  "remark": "string",
   "data": {
     "activatedTerminal": {
       "terminalId": "3a6d3703-1c39-41e8-98ce-b38d9574540d",
-      "activationDate": "2024-05-14T19:25:27.8106046+02:00",
+      "terminalPosition": 1,
+      "taxpayerId": "b5f5343f-3ccb-4495-807a-c827b7ed8073",
+      "activationDate": "2025-06-16T09:28:59.188Z",
       "terminalCredentials": {
-        "jwtToken": "mock.jwt.token",
-        "secretKey": "f7542816a0883314a146a6d1276349d9e736a00"
+        "jwtToken": "f47ac10b58cc4372a5670e02b2c3d479",
+        "secretKey": "a9T3Klm0oPqRs1Zx8VwYuN3rGhCbXjL5"
       }
     },
     "configuration": {
       "globalConfiguration": {
-        "id": 1,
-        "versionNo": 1,
+        "id": "7efc05b8-0c4d-4def-be43-a0c7433a0f93",
+        "versionNo": 1.1,
         "taxrates": [
           {
-            "id": "T",
-            "name": "VAT",
-            "chargeMode": "Item",
-            "ordinal": 100,
-            "rate": 16.5
-          },
-          {
-            "id": "TR",
-            "name": "Tourism Levy",
-            "chargeMode": "Global",
-            "ordinal": 2,
-            "rate": 1.0
+            "id": "string",
+            "name": "string",
+            "chargeMode": "string",
+            "ordinal": 0,
+            "rate": 0
           }
         ]
       },
       "terminalConfiguration": {
-        "versionNo": 1,
-        "terminalLabel": "Till-03",
+        "versionNo": 2.1,
+        "terminalLabel": "string",
+        "isActiveTerminal": true,
         "emailAddress": "test@example.com",
-        "phoneNumber": "0881234567",
-        "tradingName": "Mock Trader",
-        "addressLines": ["123 Market Street"]
+        "phoneNumber": "0888800800",
+        "tradingName": "Receipt Rocket",
+        "addressLines": [
+          "string"
+        ],
+        "terminalSite": {
+          "siteId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+          "siteName": "Receipt Rocket"
+        },
+        "offlineLimit": {
+          "maxTransactionAgeInHours": 72,
+          "maxCummulativeAmount": 0
+        }
       },
       "taxpayerConfiguration": {
-        "versionNo": 89,
+        "versionNo": 3,
         "tin": "20202020",
         "isVATRegistered": true,
-        "taxOfficeCode": "SWE",
+        "taxOfficeCode": "string",
         "taxOffice": {
-          "code": "SWE",
-          "name": "Songwe"
+          "code": "string",
+          "name": "string"
         },
-        "activatedTaxRateIds": ["FIN", "VAT"],
-        "activatedTaxrates": true
+        "activatedTaxRateIds": [
+          "string"
+        ],
+        "activatedTaxrates": [
+          {
+            "id": 0,
+            "taxpayerConfigurationId": 0,
+            "taxRateId": "string"
+          }
+        ]
       }
     }
   },
-  "errors": null
+  "errors": [
+    {
+      "errorCode": 0,
+      "fieldName": "string",
+      "errorMessage": "string"
+    }
+  ]
 }

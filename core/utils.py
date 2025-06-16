@@ -65,3 +65,7 @@ email_regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
 
 def generate_invoice_number():
     return "INV" + datetime.now().strftime("%Y%m%d%H%M%S")
+
+
+def calculate_tax(amount, tax_rate) -> float:
+    return amount / (1 + tax_rate / 100)

@@ -1,78 +1,23 @@
+import json
+from pathlib import Path
+
 import pytest
 import respx
 from httpx import Response
 
-from core.models import Terminal
+from core.models import Terminal, Tenant
 from core.settings import settings
 from core.utils import create_fake_mac_address
-from tests.conftest import get_test_file
-
-activation_response = {
-    "statusCode": 1,
-    "remark": "Terminal Activated, pending for confirmation request",
-    "data": {
-        "activatedTerminal": {
-            "terminalId": "3a6d3703-1c39-41e8-98ce-b38d9574540d",
-            "activationDate": "2024-05-14T19:25:27.8106046+02:00",
-            "terminalCredentials": {
-                "jwtToken": "mock.jwt.token",
-                "secretKey": "f7542816a0883314a146a6d1276349d9e736a00"
-            }
-        },
-        "configuration": {
-            "globalConfiguration": {
-                "id": 1,
-                "versionNo": 1,
-                "taxrates": [
-                    {
-                        "id": "T",
-                        "name": "VAT",
-                        "chargeMode": "Item",
-                        "ordinal": 100,
-                        "rate": 16.5
-                    },
-                    {
-                        "id": "TR",
-                        "name": "Tourism Levy",
-                        "chargeMode": "Global",
-                        "ordinal": 2,
-                        "rate": 1.0
-                    }
-                ]
-            },
-            "terminalConfiguration": {
-                "versionNo": 1,
-                "terminalLabel": "Till-03",
-                "emailAddress": "test@example.com",
-                "phoneNumber": "0881234567",
-                "tradingName": "Mock Trader",
-                "addressLines": ["123 Market Street"]
-            },
-            "taxpayerConfiguration": {
-                "versionNo": 89,
-                "tin": "20202020",
-                "isVATRegistered": True,
-                "taxOfficeCode": "SWE",
-                "taxOffice": {
-                    "code": "SWE",
-                    "name": "Songwe"
-                },
-                "activatedTaxRateIds": ["FIN", "VAT"],
-                "activatedTaxrates": None
-            }
-        }
-    },
-    "errors": None
-}
-
-fake_response = get_test_file("activation_response.json")
 
 
 @pytest.mark.asyncio
 @respx.mock
 def test_activate_terminal_mocked(client, auth_header, test_db):
+    mock_path = Path(__file__).parent / "data" / "activation_response.json"
+    mock_data = json.loads(mock_path.read_text())
+
     respx.post(f"{settings.MRA_EIS_URL}/onboarding/activate-terminal").mock(
-        return_value=Response(200, json=activation_response))
+        return_value=Response(200, json=mock_data))
 
     response = client.post(
         "/api/v1/activation/activate",
@@ -84,6 +29,12 @@ def test_activate_terminal_mocked(client, auth_header, test_db):
     assert response.status_code == 200
     assert test_db.query(Terminal).count() == 1
     assert test_db.query(Terminal).first().terminal_id == "3a6d3703-1c39-41e8-98ce-b38d9574540d"
+    assert test_db.query(Terminal).first().site_id == "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+
+    assert test_db.query(Tenant).count() == 1
+    assert test_db.query(Tenant).first().tin == "20202020"
+    assert test_db.query(Tenant).first().vat_registered == True
+    assert test_db.query(Tenant).first().config_version == 3
 
 
 @pytest.mark.asyncio
@@ -112,7 +63,6 @@ def test_activate_terminal_mock_failure(client, auth_header):
         json={"terminal_activation_code": "MOCK-CODE-1234-2345"})
 
     assert response.status_code == 400
-
 
 
 @pytest.mark.asyncio
