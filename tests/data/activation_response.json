@@ -61,7 +61,7 @@
           {
             "id": 0,
             "taxpayerConfigurationId": 0,
-            "taxRateId": "string"
+            "taxRateId": "A"
           }
         ]
       }

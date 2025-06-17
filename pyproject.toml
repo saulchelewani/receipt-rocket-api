@@ -19,7 +19,7 @@ dependencies = [
     "passlib",
     "bcrypt",
     "python-jose",
-    "httpx",
+    "httpx>=0.23.0,<0.24.0",
     "rstr",
     "respx",
     "slowapi",

@@ -120,5 +120,4 @@ async def submit_a_transaction(
         }
     }
 
-    # print(invoice)
     return invoice

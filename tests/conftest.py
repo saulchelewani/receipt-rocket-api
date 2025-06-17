@@ -95,6 +95,15 @@ def auth_header(test_user):
     return {"Authorization": f"Bearer {token}"}
 
 
+@pytest.fixture
+def device_headers(test_user, test_terminal):
+    token = create_access_token(data={"sub": test_user.email}, expires_delta=timedelta(minutes=15))
+    return {
+        "Authorization": f"Bearer {token}",
+        "x-device-id": test_terminal.device_id
+    }
+
+
 @pytest.fixture()
 def auth_header_tenant_admin(test_tenant_admin, test_tenant: Tenant):
     token = create_access_token(data={"sub": test_tenant_admin.email},
@@ -210,6 +219,8 @@ def test_global_config(test_db: Session):
     test_db.commit()
     test_db.refresh(config)
     return config
+
+
 #
 # @pytest.fixture
 # def auth_header_non_admin(test_non_admin_user):

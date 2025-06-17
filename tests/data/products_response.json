@@ -1,0 +1,26 @@
+{
+  "statusCode": 0,
+  "remark": "string",
+  "data": [
+    {
+      "productCode": "6161101860079",
+      "productName": "Kericho Gold",
+      "description": "Kericho Gold 200g",
+      "quantity": 43,
+      "unitOfMeasure": "boxes",
+      "price": 2300,
+      "siteId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+      "productExpiryDate": "2025-06-16T14:04:59.195Z",
+      "minimumStockLevel": 0,
+      "taxRateId": "A",
+      "isProduct": true
+    }
+  ],
+  "errors": [
+    {
+      "errorCode": 0,
+      "fieldName": "string",
+      "errorMessage": "string"
+    }
+  ]
+}

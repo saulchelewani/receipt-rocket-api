@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime
 
 from sqlalchemy import Column, String, ForeignKey, UUID, Table, Float, DateTime, func, Integer, JSON, Boolean
 from sqlalchemy.orm import Mapped, relationship, declared_attr
@@ -151,16 +152,20 @@ class TaxRate(Model):
 class Product(Model):
     __tablename__ = "products"
 
-    item_id: Mapped[str] = Column(UUID(as_uuid=True), ForeignKey("items.id"), nullable=False)
     tenant_id: Mapped[UUID] = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
     description: Mapped[str] = Column(String)
+    name: Mapped[str] = Column(String)
     unit_price: Mapped[float] = Column(Float, nullable=False)
-    quantity: Mapped[int]
+    quantity: Mapped[int] = Column(Integer, nullable=False)
+    unit_of_measure: Mapped[str] = Column(String, nullable=False)
+    site_id: Mapped[UUID] = Column(UUID(as_uuid=True), nullable=True)
+    expiry_date: Mapped[datetime] = Column(DateTime, nullable=True)
+    minimum_stock_level: Mapped[int] = Column(Integer, nullable=True)
+    tax_rate_id: Mapped[str] = Column(String, nullable=False)
+    is_product: Mapped[bool] = Column(Boolean, nullable=False)
     code: Mapped[str] = Column(String, nullable=False)
 
-    item: Mapped["Item"] = relationship("Item", back_populates="products")
     tenant: Mapped["Tenant"] = relationship("Tenant", back_populates="products")
-
 
 class Item(Model):
     __tablename__ = "items"
@@ -169,8 +174,6 @@ class Item(Model):
     name: Mapped[str] = Column(String, nullable=False)
     description: Mapped[str] = Column(String, nullable=True)
     is_product: Mapped[bool] = Column(Boolean, default=True)
-
-    products: Mapped[list["Product"]] = relationship("Product", back_populates="item")
 
 
 class GlobalConfig(Model):
