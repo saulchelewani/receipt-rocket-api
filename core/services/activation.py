@@ -18,32 +18,40 @@ async def activate_terminal(code: str, tenant: Tenant, db: Session, x_mac_addres
 
     sync_global_config(db, result["data"]["configuration"]["globalConfiguration"])
     save_tax_payer_config(db, tenant, result["data"]["configuration"]["taxpayerConfiguration"])
+    return sync_terminal_config(db, result["data"]["configuration"]["terminalConfiguration"], tenant)
 
-    terminal_data = result["data"]["activatedTerminal"]
-    config = result["data"]["configuration"]
+
+def sync_terminal_config(db: Session, config: dict, tenant: Tenant):
+    db_terminal = db.query(Terminal).filter(Terminal.label == config['terminalLabel']).first()
+    if db_terminal and db_terminal.config_version == config["versionNo"]:
+        return db_terminal
 
     terminal_dict = {
-        'terminal_id': terminal_data["terminalId"],
-        'secret_key': terminal_data["terminalCredentials"]["secretKey"],
         'tenant_id': tenant.id,
-        'label': config["terminalConfiguration"]["terminalLabel"],
-        'email': config["terminalConfiguration"]["emailAddress"],
-        'phone_number': config["terminalConfiguration"]["phoneNumber"],
-        'trading_name': config["terminalConfiguration"]["tradingName"],
-        'config_version': config["terminalConfiguration"]["versionNo"],
-        'address_lines': config["terminalConfiguration"]["addressLines"],
-        'device_id': get_sequence_number(),
-        'site_id': uuid.UUID(config["terminalConfiguration"]["terminalSite"]["siteId"]),
-        'site_name': config["terminalConfiguration"]["terminalSite"]["siteName"],
+        'site_id': uuid.UUID(config['terminalSite']['siteId']),
+        'trading_name': config['tradingName'],
+        'email': config['emailAddress'],
+        'phone_number': config['phoneNumber'],
+        'label': config['terminalLabel'],
+        'device_id': get_sequence_number() if not db_terminal else db_terminal.device_id,
+        'config_version': config['versionNo'],
+        'address_lines': config['addressLines'],
+        'offline_limit_hours': config['offlineLimit']['maxTransactionAgeInHours'],
+        'offline_limit_amount': config['offlineLimit']['maxCummulativeAmount']
     }
 
-    terminal = Terminal(**terminal_dict)
-    db.add(terminal)
+    if not db_terminal:
+        db_terminal = Terminal(**terminal_dict)
+        db.add(db_terminal)
+        db.commit()
+        db.refresh(db_terminal)
+        return db_terminal
 
+    for key, value in terminal_dict.items():
+        setattr(db_terminal, key, value)
 
     db.commit()
-    db.refresh(terminal)
-    return terminal
+    return db_terminal
 
 
 async def confirm_terminal_activation(terminal):
