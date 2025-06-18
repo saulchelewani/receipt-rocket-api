@@ -253,7 +253,7 @@ def test_tenant(test_db: Session):
     if tenant: return tenant
     tenant = Tenant(name="test", code="test", email="test@example.com", phone_number="0886265490",
                     tin=get_random_number(9),
-                    config_version=1.0)
+                    config_version=1)
     test_db.add(tenant)
     test_db.commit()
     test_db.refresh(tenant)

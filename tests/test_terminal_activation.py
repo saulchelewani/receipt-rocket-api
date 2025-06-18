@@ -27,7 +27,6 @@ def test_activate_terminal_mocked(client, auth_header, test_db):
             "x-mac-address": create_fake_mac_address(),
         }, json={"terminal_activation_code": "MOCK-CODE-1234-36ES"})
 
-    print(response.json())
     assert response.status_code == 200
     assert test_db.query(Terminal).count() == 1
     assert test_db.query(Terminal).first().terminal_id == "3a6d3703-1c39-41e8-98ce-b38d9574540d"
@@ -35,9 +34,9 @@ def test_activate_terminal_mocked(client, auth_header, test_db):
 
     assert test_db.query(Tenant).count() == 1
     db_tenants = test_db.query(Tenant).first()
-    assert test_db.query(Tenant).first().tin == "20202020"
-    assert test_db.query(Tenant).first().vat_registered == True
-    assert test_db.query(Tenant).first().config_version == 3
+    assert db_tenants.tin == "20202020"
+    assert db_tenants.vat_registered == True
+    assert db_tenants.config_version == 3
 
 
 @pytest.mark.asyncio

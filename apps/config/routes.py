@@ -7,9 +7,9 @@ from sqlalchemy.orm import Session
 from apps.config.schema import ConfigResponse
 from core.auth import get_current_user
 from core.database import get_db
-from core.models import User, TaxRate, Terminal, Tenant
+from core.models import User, TaxRate, Terminal
 from core.services.activation import sync_global_config
-from core.services.config import get_configuration
+from core.services.config import get_configuration, save_tax_payer_config
 
 router = APIRouter(
     prefix="/config",
@@ -89,19 +89,3 @@ def save_terminal_config(db: Session, terminal, terminal_config: dict) -> Termin
 
     db.commit()
     return terminal
-
-
-def save_tax_payer_config(db: Session, tenant: Tenant, tax_payer_config: dict[str, Any]) -> Tenant:
-    profile_dict = {
-        'tin': tax_payer_config['tin'],
-        'version': tax_payer_config['versionNo'],
-        'vat_registered': tax_payer_config['isVATRegistered'],
-        'tax_office_code': tax_payer_config['taxOffice']['code'],
-        'tax_office_name': tax_payer_config['taxOffice']['name'],
-        'activated_tax_rate_ids': tax_payer_config['activatedTaxRateIds']
-    }
-    for key, value in profile_dict.items():
-        setattr(tenant, key, value)
-
-    db.commit()
-    return tenant

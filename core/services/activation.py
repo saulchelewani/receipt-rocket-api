@@ -5,6 +5,7 @@ from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
 from core.models import Terminal, TaxRate, Tenant, GlobalConfig
+from core.services.config import save_tax_payer_config
 from core.settings import settings
 from core.utils import sign_hmac_sha512, get_sequence_number
 
@@ -16,26 +17,10 @@ async def activate_terminal(code: str, tenant: Tenant, db: Session, x_mac_addres
         raise HTTPException(status_code=400, detail="Terminal activation failed")
 
     sync_global_config(db, result["data"]["configuration"]["globalConfiguration"])
+    save_tax_payer_config(db, tenant, result["data"]["configuration"]["taxpayerConfiguration"])
 
     terminal_data = result["data"]["activatedTerminal"]
     config = result["data"]["configuration"]
-
-    tenant_config = config.get("taxpayerConfiguration")
-
-    tenant_dict = {
-        'config_version': tenant_config.get("versionNo"),
-        'tin': tenant_config.get("tin"),
-        'vat_registered': tenant_config.get("isVATRegistered"),
-        'tax_office_code': tenant_config.get("taxOfficeCode"),
-        'tax_office_name': tenant_config.get("taxOffice")["name"],
-        'activated_tax_rate_ids': tenant_config.get("activatedTaxRateIds"),
-    }
-
-    for key, value in tenant_dict.items():
-        setattr(tenant, key, value)
-
-    db.commit()
-    db.refresh(tenant)
 
     terminal_dict = {
         'terminal_id': terminal_data["terminalId"],
@@ -109,7 +94,6 @@ async def activate_terminal_with_code(code: str, mac_address: str) -> dict:
             )
             if int(response.json()["statusCode"]) < -1:
                 raise HTTPException(status_code=400, detail=response.json()["remark"])
-            print(response.json())
             return response.json()
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
