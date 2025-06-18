@@ -1,3 +1,5 @@
+import uuid
+
 import httpx
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
@@ -61,7 +63,7 @@ def activate_terminal(code: str, tenant: Tenant, db: Session, x_mac_address: str
         'config_version': config["terminalConfiguration"]["versionNo"],
         'address_lines': config["terminalConfiguration"]["addressLines"],
         'device_id': get_sequence_number(),
-        'site_id': config["terminalConfiguration"]["terminalSite"]["siteId"],
+        'site_id': uuid.UUID(config["terminalConfiguration"]["terminalSite"]["siteId"]),
         'site_name': config["terminalConfiguration"]["terminalSite"]["siteName"],
     }
 

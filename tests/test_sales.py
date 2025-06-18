@@ -9,7 +9,7 @@ def test_make_a_sale(client, test_db, auth_header_global_admin, test_terminal, t
     test_db.commit()
     test_db.refresh(item)
 
-    product = Product(item_id=item.id, tenant_id=test_terminal.tenant_id, unit_price=300, quantity=4, code=item.code)
+    product = Product(tenant_id=test_terminal.tenant_id, unit_price=300, quantity=4, code=item.code)
     test_db.add(product)
     test_db.commit()
     test_db.refresh(product)

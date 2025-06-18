@@ -1,4 +1,5 @@
 import os
+import uuid
 from datetime import timedelta
 
 import pytest
@@ -168,7 +169,8 @@ def test_terminal(test_db: Session, test_tenant: Tenant):
     terminal = test_db.query(Terminal).first()
     if terminal: return terminal
     terminal = Terminal(terminal_id="test", secret_key=settings.SECRET_KEY, tenant_id=test_tenant.id,
-                        config_version=1.0,
+                        config_version=1,
+                        site_id=uuid.uuid4(),
                         device_id=get_sequence_number())
     test_db.add(terminal)
     test_db.commit()
@@ -180,7 +182,7 @@ def test_terminal(test_db: Session, test_tenant: Tenant):
 def test_product(test_db: Session, test_tenant: Tenant, test_item: Item):
     product = test_db.query(Product).filter(Product.tenant_id == test_tenant.id).first()
     if product: return product
-    product = Product(tenant_id=test_tenant.id, quantity=10, item_id=test_item.id, code=test_item.code,
+    product = Product(tenant_id=test_tenant.id, quantity=10, code=test_item.code,
                       unit_price=100, description=test_item.description)
     test_db.add(product)
     test_db.commit()

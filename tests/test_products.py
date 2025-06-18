@@ -19,6 +19,7 @@ def test_get_products(client, device_headers, test_db):
         return_value=Response(200, json=mock_data))
 
     response = client.get("/api/v1/products", headers=device_headers)
+
     assert response.status_code == 200
     assert test_db.query(Product).count() == 1
 

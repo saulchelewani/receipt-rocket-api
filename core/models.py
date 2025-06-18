@@ -130,7 +130,7 @@ class Terminal(Model):
     offline_limit_hours: Mapped[int] = Column(Integer, nullable=True)
     offline_limit_amount: Mapped[float] = Column(Float, nullable=True)
     device_id: Mapped[str] = Column(String, nullable=True)
-    site_id: Mapped[str] = Column(String, nullable=True)
+    site_id: Mapped[UUID] = Column(UUID(as_uuid=True), nullable=False)
     site_name: Mapped[str] = Column(String, nullable=True)
 
     tenant: Mapped["Tenant"] = relationship("Tenant", back_populates="terminals")

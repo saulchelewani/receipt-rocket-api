@@ -1,4 +1,5 @@
 import json
+import uuid
 from pathlib import Path
 
 import pytest
@@ -29,7 +30,7 @@ def test_activate_terminal_mocked(client, auth_header, test_db):
     assert response.status_code == 200
     assert test_db.query(Terminal).count() == 1
     assert test_db.query(Terminal).first().terminal_id == "3a6d3703-1c39-41e8-98ce-b38d9574540d"
-    assert test_db.query(Terminal).first().site_id == "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+    assert test_db.query(Terminal).first().site_id == uuid.UUID("f47ac10b-58cc-4372-a567-0e02b2c3d479")
 
     assert test_db.query(Tenant).count() == 1
     assert test_db.query(Tenant).first().tin == "20202020"
