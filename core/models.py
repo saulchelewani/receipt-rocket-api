@@ -144,9 +144,6 @@ class TaxRate(Model):
     rate: Mapped[float | None] = Column(Float, nullable=False)
     ordinal: Mapped[int] = Column(Integer)
     charge_mode: Mapped[str] = Column(String)
-    global_config_id: Mapped[UUID] = Column(UUID(as_uuid=True), ForeignKey("global_config.id"), nullable=False)
-
-    global_config: Mapped["GlobalConfig"] = relationship("GlobalConfig", back_populates="tax_rates")
 
 
 class Product(Model):
@@ -167,6 +164,7 @@ class Product(Model):
 
     tenant: Mapped["Tenant"] = relationship("Tenant", back_populates="products")
 
+
 class Item(Model):
     __tablename__ = "items"
 
@@ -180,5 +178,3 @@ class GlobalConfig(Model):
     __tablename__ = "global_config"
 
     version: Mapped[int] = Column(Integer, nullable=False)
-
-    tax_rates: Mapped[list["TaxRate"]] = relationship("TaxRate", back_populates="global_config")

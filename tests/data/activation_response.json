@@ -15,7 +15,7 @@
     "configuration": {
       "globalConfiguration": {
         "id": "7efc05b8-0c4d-4def-be43-a0c7433a0f93",
-        "versionNo": 1.1,
+        "versionNo": 1,
         "taxrates": [
           {
             "id": "string",
@@ -75,3 +75,4 @@
     }
   ]
 }
+

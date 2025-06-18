@@ -7,7 +7,8 @@ from sqlalchemy.orm import Session
 from apps.config.schema import ConfigResponse
 from core.auth import get_current_user
 from core.database import get_db
-from core.models import User, TaxRate, Terminal, Tenant, GlobalConfig
+from core.models import User, TaxRate, Terminal, Tenant
+from core.services.activation import sync_global_config
 from core.services.config import get_configuration
 
 router = APIRouter(
@@ -25,23 +26,7 @@ async def get_config(terminal_id: UUID, user: User = Depends(get_current_user), 
 
     config = await get_configuration()
 
-    global_config = config["data"]["globalConfiguration"]
-    global_config_version = global_config["versionNo"]
-
-    db_global_config = db.query(GlobalConfig).filter(GlobalConfig.version == global_config_version).first()
-    if not db_global_config:
-        db_global_config = GlobalConfig(version=global_config_version)
-        db.add(db_global_config)
-        db.commit()
-        db.refresh(db_global_config)
-
-    db_tax_rates = db.query(TaxRate).filter(TaxRate.global_config_id == db_global_config.id).all()
-    if db_tax_rates:
-        for rate in db_tax_rates:
-            db.delete(rate)
-        db.commit()
-
-    rates = save_tax_rates(db, global_config.get("taxRates", []), db_global_config.id)
+    tax_rates = sync_global_config(db, config["data"]["globalConfiguration"])
 
     terminal = db.query(Terminal).filter(Terminal.id == terminal_id).first()
     if not terminal:
@@ -54,7 +39,7 @@ async def get_config(terminal_id: UUID, user: User = Depends(get_current_user), 
     profile = save_tax_payer_config(db, tenant, tax_payer_config)
 
     response = {
-        "tax_rates": rates,
+        "tax_rates": tax_rates,
         "tax_payer": profile,
         "terminal": db_terminal
     }

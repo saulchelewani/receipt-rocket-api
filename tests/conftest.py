@@ -179,16 +179,18 @@ def test_terminal(test_db: Session, test_tenant: Tenant):
 
 
 @pytest.fixture
-def test_product(test_db: Session, test_tenant: Tenant, test_item: Item):
+def test_product(test_db: Session, test_tenant: Tenant, test_terminal: Terminal):
     product = test_db.query(Product).filter(Product.tenant_id == test_tenant.id).first()
     if product: return product
     product = Product(
         tenant_id=test_tenant.id,
         quantity=10,
-        code=test_item.code,
+        site_id=test_terminal.site_id,
+        name="test product",
+        code=get_random_number(12),
         unit_of_measure="kg",
         unit_price=100,
-        description=test_item.description,
+        description="test product",
         tax_rate_id="A",
         is_product=True,
     )
@@ -210,10 +212,10 @@ def test_item(test_db: Session):
 
 
 @pytest.fixture
-def test_tax_rate(test_db: Session, test_global_config):
+def test_tax_rate(test_db: Session):
     tax_rate = test_db.query(TaxRate).first()
     if tax_rate: return tax_rate
-    tax_rate = TaxRate(name="VAT-A", rate=16.5, global_config_id=test_global_config.id, rate_id="A")
+    tax_rate = TaxRate(name="VAT-A", rate=16.5, rate_id="A")
     test_db.add(tax_rate)
     test_db.commit()
     test_db.refresh(tax_rate)

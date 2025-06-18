@@ -1,0 +1,65 @@
+{
+  "statusCode": 0,
+  "remark": "string",
+  "data": {
+    "globalConfiguration": {
+      "id": 0,
+      "versionNo": 0,
+      "taxrates": [
+        {
+          "id": "string",
+          "name": "string",
+          "chargeMode": "string",
+          "ordinal": 0,
+          "rate": 0
+        }
+      ]
+    },
+    "terminalConfiguration": {
+      "versionNo": 0,
+      "terminalLabel": "string",
+      "isActiveTerminal": true,
+      "emailAddress": "string",
+      "phoneNumber": "+265888123456",
+      "tradingName": "string",
+      "addressLines": [
+        "string"
+      ],
+      "terminalSite": {
+        "siteId": "string",
+        "siteName": "string"
+      },
+      "offlineLimit": {
+        "maxTransactionAgeInHours": 0,
+        "maxCummulativeAmount": 0
+      }
+    },
+    "taxpayerConfiguration": {
+      "versionNo": 0,
+      "tin": "20202020",
+      "isVATRegistered": true,
+      "taxOfficeCode": "string",
+      "taxOffice": {
+        "code": "string",
+        "name": "string"
+      },
+      "activatedTaxRateIds": [
+        "string"
+      ],
+      "activatedTaxrates": [
+        {
+          "id": 0,
+          "taxpayerConfigurationId": 0,
+          "taxRateId": "string"
+        }
+      ]
+    }
+  },
+  "errors": [
+    {
+      "errorCode": 0,
+      "fieldName": "string",
+      "errorMessage": "string"
+    }
+  ]
+}

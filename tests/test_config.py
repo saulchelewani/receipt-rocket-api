@@ -1,3 +1,6 @@
+import json
+from pathlib import Path
+
 import pytest
 import respx
 from httpx import Response
@@ -72,11 +75,14 @@ config_response = {
 @pytest.mark.asyncio
 @respx.mock
 def test_get_new_config(client, auth_header, test_db, test_terminal):
+    mock_path = Path(__file__).parent / "data" / "config_response.json"
+    mock_data = json.loads(mock_path.read_text())
+
     respx.get(f"{settings.MRA_EIS_URL}/api/v1/configuration/get-latest-configs").mock(
-        return_value=Response(200, json=config_response))
+        return_value=Response(200, json=mock_data))
 
     response = client.get(f"/api/v1/config/{str(test_terminal.id)}", headers=auth_header)
     assert response.status_code == 200
-    assert test_db.query(TaxRate).count() == 3
+    assert test_db.query(TaxRate).count() == 1
     assert test_db.get(Terminal, test_terminal.id).phone_number == '+265888123456'
     assert test_db.query(Tenant).filter(Tenant.id == test_terminal.tenant_id).first().tin == '20202020'

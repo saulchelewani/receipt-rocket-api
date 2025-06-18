@@ -27,6 +27,7 @@ def test_activate_terminal_mocked(client, auth_header, test_db):
             "x-mac-address": create_fake_mac_address(),
         }, json={"terminal_activation_code": "MOCK-CODE-1234-36ES"})
 
+    print(response.json())
     assert response.status_code == 200
     assert test_db.query(Terminal).count() == 1
     assert test_db.query(Terminal).first().terminal_id == "3a6d3703-1c39-41e8-98ce-b38d9574540d"

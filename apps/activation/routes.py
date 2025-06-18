@@ -24,7 +24,7 @@ async def activate(
         db: Session = Depends(get_db),
         x_mac_address: Annotated[str | None, Header(), None] = None,
         tenant: Tenant = Depends(get_tenant)):
-    terminal = activate_terminal(request.terminal_activation_code, tenant, db, x_mac_address)
+    terminal = await activate_terminal(request.terminal_activation_code, tenant, db, x_mac_address)
     return terminal
 
 

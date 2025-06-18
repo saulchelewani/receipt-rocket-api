@@ -14,6 +14,7 @@ class ProductBase(BaseModel):
     expiry_date: datetime | None = None
     minimum_stock_level: int | None = None
     tax_rate_id: str | None = None
+    code: str | None = None
 
 
 class ProductRead(ProductBase):

@@ -9,33 +9,16 @@ from core.settings import settings
 from core.utils import sign_hmac_sha512, get_sequence_number
 
 
-def activate_terminal(code: str, tenant: Tenant, db: Session, x_mac_address: str | None = None):
-    payload = {
-        "terminalActivationCode": code,
-        "environment": {
-            "platform": {
-                "osName": "Windows 11",
-                "osVersion": "Windows 11",
-                "osBuild": "11.901.2",
-                "macAddress": x_mac_address
-            },
-            "pos": {
-                "productID": settings.APP_NAME,
-                "productVersion": str(settings.APP_VERSION),
-            }
-        }
-    }
+async def activate_terminal(code: str, tenant: Tenant, db: Session, x_mac_address: str | None = None):
+    result = await activate_terminal_with_code(code, x_mac_address)
 
-    response = httpx.post(f"{settings.MRA_EIS_URL}/onboarding/activate-terminal", json=payload)
-    response_data = response.json()
+    if not result:
+        raise HTTPException(status_code=400, detail="Terminal activation failed")
 
-    if response_data["statusCode"] < -1:
-        raise HTTPException(status_code=400, detail=response_data["remark"])
+    sync_global_config(db, result["data"]["configuration"]["globalConfiguration"])
 
-    result = response_data["data"]
-
-    terminal_data = result["activatedTerminal"]
-    config = result["configuration"]
+    terminal_data = result["data"]["activatedTerminal"]
+    config = result["data"]["configuration"]
 
     tenant_config = config.get("taxpayerConfiguration")
 
@@ -72,29 +55,6 @@ def activate_terminal(code: str, tenant: Tenant, db: Session, x_mac_address: str
     terminal = Terminal(**terminal_dict)
     db.add(terminal)
 
-    db_global_config = db.query(GlobalConfig).filter(
-        GlobalConfig.version == config["globalConfiguration"]["versionNo"]).first()
-    if not db_global_config:
-        db_global_config = GlobalConfig(version=config["globalConfiguration"]["versionNo"])
-        db.add(db_global_config)
-        db.commit()
-        db.refresh(db_global_config)
-
-    for tax in config["globalConfiguration"]["taxrates"]:
-        db_rate = db.query(TaxRate).filter(TaxRate.name == tax["name"]).first()
-        if db_rate:
-            db_rate.rate = tax["rate"]
-            db_rate.charge_mode = tax["chargeMode"]
-            db_rate.rate_id = tax["id"]
-            continue
-        tax_rate = TaxRate(
-            rate_id=tax["id"],
-            name=tax["name"],
-            rate=tax["rate"],
-            charge_mode=tax["chargeMode"],
-            global_config_id=db_global_config.id
-        )
-        db.add(tax_rate)
 
     db.commit()
     db.refresh(terminal)
@@ -122,3 +82,67 @@ async def confirm_terminal_activation(terminal):
             raise HTTPException(status_code=400, detail=response.json()["remark"])
 
         return response.json()
+
+
+async def activate_terminal_with_code(code: str, mac_address: str) -> dict:
+    payload = {
+        "terminalActivationCode": code,
+        "environment": {
+            "platform": {
+                "osName": "Windows 11",
+                "osVersion": "Windows 11",
+                "osBuild": "11.901.2",
+                "macAddress": mac_address
+            },
+            "pos": {
+                "productID": settings.APP_NAME,
+                "productVersion": str(settings.APP_VERSION),
+            }
+        }
+    }
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                f"{settings.MRA_EIS_URL}/onboarding/activate-terminal",
+                timeout=settings.MRA_EIS_TIMEOUT,
+                json=payload
+            )
+            if int(response.json()["statusCode"]) < -1:
+                raise HTTPException(status_code=400, detail=response.json()["remark"])
+            print(response.json())
+            return response.json()
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+def sync_global_config(db: Session, config: dict):
+    db_global_config = db.query(GlobalConfig).first()
+    if db_global_config and db_global_config.version == config["versionNo"]:
+        return db.query(TaxRate).all()
+
+    if not db_global_config:
+        db_global_config = GlobalConfig(version=config["versionNo"])
+        db.add(db_global_config)
+        db.commit()
+
+    db_global_config.version = config["versionNo"]
+
+    for tax in config["taxrates"]:
+        db_rate = db.query(TaxRate).filter(TaxRate.name == tax["name"]).first()
+        if db_rate:
+            db_rate.rate = tax["rate"]
+            db_rate.charge_mode = tax["chargeMode"]
+            db_rate.ordinal = tax["ordinal"]
+            db_rate.rate_id = tax["id"]
+            continue
+        tax_rate = TaxRate(
+            rate_id=tax["id"],
+            name=tax["name"],
+            rate=tax["rate"],
+            charge_mode=tax["chargeMode"],
+            ordinal=tax["ordinal"],
+        )
+        db.add(tax_rate)
+
+    db.commit()
+    return db.query(TaxRate).all()

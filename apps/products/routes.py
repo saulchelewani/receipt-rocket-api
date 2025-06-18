@@ -186,3 +186,49 @@ async def get_products(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An unexpected error occurred while processing your request"
         )
+
+
+@router.get("/search", response_model=list[ProductRead])
+async def search_products(
+        name: str,
+        x_device_id: Annotated[str, Header(..., description="Device ID of the terminal")],
+        db: Session = Depends(get_db),
+):
+    terminal = db.query(Terminal).filter(Terminal.device_id == x_device_id).first()
+    if not terminal:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Terminal not found"
+        )
+    return db.query(Product).filter(Product.name.contains(name), Product.site_id == terminal.site_id).all()
+
+
+@router.get("/{code}", summary="Get product by code", response_model=ProductRead)
+async def get_product(
+        code: str,
+        x_device_id: Annotated[str, Header(..., description="Device ID of the terminal")],
+        db: Session = Depends(get_db)):
+    """
+    Get product by bar code
+
+    Args:
+        code: The barcode of the product
+        x_device_id: Device ID of the terminal
+        db: Database session dependency
+
+    Returns:
+        The product
+    """
+    terminal = db.query(Terminal).filter(Terminal.device_id == x_device_id).first()
+    if not terminal:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Terminal not found"
+        )
+    product = db.query(Product).filter(Product.code == code, Product.site_id == terminal.site_id).first()
+    if not product:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Product not found"
+        )
+    return product
