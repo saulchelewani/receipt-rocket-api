@@ -33,6 +33,7 @@ def test_activate_terminal_mocked(client, auth_header, test_db):
     assert test_db.query(Terminal).first().site_id == uuid.UUID("f47ac10b-58cc-4372-a567-0e02b2c3d479")
 
     assert test_db.query(Tenant).count() == 1
+    db_tenants = test_db.query(Tenant).first()
     assert test_db.query(Tenant).first().tin == "20202020"
     assert test_db.query(Tenant).first().vat_registered == True
     assert test_db.query(Tenant).first().config_version == 3

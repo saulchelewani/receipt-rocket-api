@@ -20,5 +20,8 @@ class Settings(BaseSettings):
     # 60 minutes * 24 hours * 8 days = 8 days
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7
     MRA_EIS_URL: str
+    MRA_EIS_TIMEOUT: int = 30
+    APP_NAME: str
+    APP_VERSION: str
 
 settings = Settings()

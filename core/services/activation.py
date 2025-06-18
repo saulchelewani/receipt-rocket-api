@@ -20,8 +20,8 @@ def activate_terminal(code: str, tenant: Tenant, db: Session, x_mac_address: str
                 "macAddress": x_mac_address
             },
             "pos": {
-                "productID": "MRA-desktop/{guid}",
-                "productVersion": "1.0.0"
+                "productID": settings.APP_NAME,
+                "productVersion": str(settings.APP_VERSION),
             }
         }
     }
@@ -37,13 +37,15 @@ def activate_terminal(code: str, tenant: Tenant, db: Session, x_mac_address: str
     terminal_data = result["activatedTerminal"]
     config = result["configuration"]
 
+    tenant_config = config.get("taxpayerConfiguration")
+
     tenant_dict = {
-        'config_version': config["taxpayerConfiguration"]["versionNo"],
-        'tin': config["taxpayerConfiguration"]["tin"],
-        'vat_registered': config["taxpayerConfiguration"]["isVATRegistered"],
-        'tax_office_code': config["taxpayerConfiguration"]["taxOfficeCode"],
-        'tax_office_name': config["taxpayerConfiguration"]["taxOffice"]["name"],
-        'activated_tax_rate_ids': config["taxpayerConfiguration"]["activatedTaxRateIds"],
+        'config_version': tenant_config.get("versionNo"),
+        'tin': tenant_config.get("tin"),
+        'vat_registered': tenant_config.get("isVATRegistered"),
+        'tax_office_code': tenant_config.get("taxOfficeCode"),
+        'tax_office_name': tenant_config.get("taxOffice")["name"],
+        'activated_tax_rate_ids': tenant_config.get("activatedTaxRateIds"),
     }
 
     for key, value in tenant_dict.items():
@@ -111,8 +113,10 @@ async def confirm_terminal_activation(terminal):
     }
 
     async with httpx.AsyncClient() as client:
-        response = await client.post(f"{settings.MRA_EIS_URL}/onboarding/terminal-activated-confirmation",
-                                     headers=headers, json=payload)
+        response = await client.post(
+            f"{settings.MRA_EIS_URL}/onboarding/terminal-activated-confirmation",
+            headers=headers,
+            json=payload)
 
         if int(response.json()["statusCode"]) < -1:
             raise HTTPException(status_code=400, detail=response.json()["remark"])

@@ -9,7 +9,9 @@ def test_make_a_sale(client, test_db, auth_header_global_admin, test_terminal, t
     test_db.commit()
     test_db.refresh(item)
 
-    product = Product(tenant_id=test_terminal.tenant_id, unit_price=300, quantity=4, code=item.code)
+    product = Product(tenant_id=test_terminal.tenant_id, unit_price=300, quantity=4, code=item.code,
+                      unit_of_measure="kg",
+                      tax_rate_id="A", is_product=True)
     test_db.add(product)
     test_db.commit()
     test_db.refresh(product)
@@ -24,7 +26,7 @@ def test_make_a_sale(client, test_db, auth_header_global_admin, test_terminal, t
         "buyer_authorization_code": get_random_number(9),
         "invoice_line_items": [
             {
-                "product_code": test_product.item.code,
+                "product_code": test_product.code,
                 "quantity": 1,
                 "tax_rate_id": str(test_tax_rate.id),
             },

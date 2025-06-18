@@ -72,14 +72,14 @@ async def submit_a_transaction(
         line_items.append({
             "id": uuid.uuid4(),
             "productCode": item.product_code,
-            "description": product.item.name,
+            "description": product.description,
             "unitPrice": round(taxable_unit_price, 2),
             "quantity": item.quantity,
             "discount": 0,
             "total": round(taxable_amount, 2),
             "totalVAT": round(tax_amount, 2),
             "taxRateId": db_tax_rate.rate_id,
-            "isProduct": product.item.is_product
+            "isProduct": product.is_product
         })
 
     tax_breakdown_list = []
