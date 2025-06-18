@@ -1,14 +1,14 @@
 from typing import Any
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Header
 from sqlalchemy.orm import Session
 
 from apps.config.schema import ConfigResponse
 from core.auth import get_current_user
 from core.database import get_db
 from core.models import User, TaxRate, Terminal
-from core.services.activation import sync_global_config
+from core.services.activation import sync_global_config, sync_terminal_config
 from core.services.config import get_configuration, save_tax_payer_config
 
 router = APIRouter(
@@ -18,30 +18,30 @@ router = APIRouter(
 )
 
 
-@router.get("/{terminal_id}", response_model=ConfigResponse)
-async def get_config(terminal_id: UUID, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+@router.get("/", response_model=ConfigResponse)
+async def get_config(
+        user: User = Depends(get_current_user),
+        x_device_id: str = Header(...),
+        db: Session = Depends(get_db)):
     tenant = user.tenant
     if not tenant:
         raise HTTPException(status_code=400, detail="Tenant not found")
 
-    config = await get_configuration()
-
-    tax_rates = sync_global_config(db, config["data"]["globalConfiguration"])
-
-    terminal = db.query(Terminal).filter(Terminal.id == terminal_id).first()
+    terminal = db.query(Terminal).filter(Terminal.device_id == x_device_id).first()
     if not terminal:
         raise HTTPException(status_code=400, detail="Terminal not found")
 
-    terminal_config = config["data"]["terminalConfiguration"]
-    db_terminal = save_terminal_config(db, terminal, terminal_config)
+    config = await get_configuration()
 
-    tax_payer_config = config["data"]["taxpayerConfiguration"]
-    profile = save_tax_payer_config(db, tenant, tax_payer_config)
+    tax_rates = sync_global_config(db, config["data"]["globalConfiguration"])
+    profile = save_tax_payer_config(db, tenant, config["data"]["taxpayerConfiguration"])
+    terminal = sync_terminal_config(db, config["data"]["terminalConfiguration"], tenant, terminal.terminal_id)
+
 
     response = {
         "tax_rates": tax_rates,
         "tax_payer": profile,
-        "terminal": db_terminal
+        "terminal": terminal
     }
     return response
 

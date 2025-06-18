@@ -30,7 +30,7 @@ class TerminalRead(BaseModel):
     email: str
     phone_number: str
     label: str
-    version: int
+    config_version: int
     address_lines: list[str]
     offline_limit_hours: int
     offline_limit_amount: float

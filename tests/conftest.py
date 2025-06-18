@@ -168,9 +168,10 @@ def test_route(test_db: Session) -> Route:
 def test_terminal(test_db: Session, test_tenant: Tenant):
     terminal = test_db.query(Terminal).first()
     if terminal: return terminal
-    terminal = Terminal(terminal_id=get_sequence_number(), secret_key=settings.SECRET_KEY, tenant_id=test_tenant.id,
+    terminal = Terminal(terminal_id='Terminal 1', secret_key=settings.SECRET_KEY, tenant_id=test_tenant.id,
                         config_version=1,
                         site_id=uuid.uuid4(),
+                        label='Terminal 1',
                         device_id=get_sequence_number())
     test_db.add(terminal)
     test_db.commit()

@@ -18,11 +18,20 @@ async def activate_terminal(code: str, tenant: Tenant, db: Session, x_mac_addres
 
     sync_global_config(db, result["data"]["configuration"]["globalConfiguration"])
     save_tax_payer_config(db, tenant, result["data"]["configuration"]["taxpayerConfiguration"])
-    return sync_terminal_config(db, result["data"]["configuration"]["terminalConfiguration"], tenant)
+    return sync_terminal_config(
+        db,
+        result["data"]["configuration"]["terminalConfiguration"],
+        tenant,
+        result["data"]["activatedTerminal"]['terminalId']
+    )
 
 
-def sync_terminal_config(db: Session, config: dict, tenant: Tenant):
-    db_terminal = db.query(Terminal).filter(Terminal.label == config['terminalLabel']).first()
+def sync_terminal_config(db: Session, config: dict, tenant: Tenant, terminal_id: Terminal.terminal_id | None = None):
+    db_terminal = db.query(Terminal).filter(
+        Terminal.label == config['terminalLabel'],
+        Terminal.terminal_id == terminal_id
+    ).first()
+
     if db_terminal and db_terminal.config_version == config["versionNo"]:
         return db_terminal
 
@@ -39,6 +48,9 @@ def sync_terminal_config(db: Session, config: dict, tenant: Tenant):
         'offline_limit_hours': config['offlineLimit']['maxTransactionAgeInHours'],
         'offline_limit_amount': config['offlineLimit']['maxCummulativeAmount']
     }
+
+    if terminal_id is not None:
+        terminal_dict['terminal_id'] = terminal_id
 
     if not db_terminal:
         db_terminal = Terminal(**terminal_dict)
