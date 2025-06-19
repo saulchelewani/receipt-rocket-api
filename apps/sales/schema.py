@@ -1,6 +1,5 @@
 from datetime import datetime
 from enum import Enum
-from uuid import UUID
 
 from pydantic import BaseModel, field_validator, conlist
 
@@ -17,7 +16,6 @@ class InvoiceLineItem(BaseModel):
     product_code: str
     quantity: int
     discount: float = 0
-    tax_rate_id: UUID
 
 
 class TransactionRequest(BaseModel):

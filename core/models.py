@@ -141,7 +141,7 @@ class TaxRate(Model):
 
     rate_id: Mapped[str] = Column(String, nullable=False)
     name: Mapped[str] = Column(String)
-    rate: Mapped[float | None] = Column(Float, nullable=False)
+    rate: Mapped[float] = Column(Float, nullable=False)
     ordinal: Mapped[int] = Column(Integer)
     charge_mode: Mapped[str] = Column(String)
 

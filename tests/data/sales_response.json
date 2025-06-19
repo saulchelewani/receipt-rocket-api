@@ -1,0 +1,19 @@
+{
+  "statusCode": 0,
+  "remark": "string",
+  "data": {
+    "validationURL": "string",
+    "shouldDownloadLatestConfig": true,
+    "shouldBlockTerminal": true,
+    "validationErrors": [
+      "string"
+    ]
+  },
+  "errors": [
+    {
+      "errorCode": 0,
+      "fieldName": "string",
+      "errorMessage": "string"
+    }
+  ]
+}

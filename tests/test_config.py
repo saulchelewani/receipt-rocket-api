@@ -8,69 +8,6 @@ from httpx import Response
 from core.models import TaxRate, Terminal, Tenant
 from core.settings import settings
 
-config_response = {
-    "statusCode": 1,
-    "remark": "Successful",
-    "data": {
-        "globalConfiguration": {
-            "versionNo": 1,
-            "taxRates": [
-                {
-                    "id": "A",
-                    "name": "VAT-A",
-                    "chargeMode": "G",
-                    "ordinal": 5,
-                    "rate": 16.5
-                },
-                {
-                    "id": "E",
-                    "name": "Excempt",
-                    "chargeMode": "G",
-                    "ordinal": 2,
-                    "rate": 0
-                },
-                {
-                    "id": "TL",
-                    "name": "Tourism Levy",
-                    "chargeMode": "G",
-                    "ordinal": 1,
-                    "rate": 1
-                }
-            ]
-        },
-        "terminalConfiguration": {
-            "versionNo": 2,
-            "terminalLabel": "Cashier 1",
-            "emailAddress": "taxpayer@example.com",
-            "phoneNumber": "+265888123456",
-            "tradingName": "TRADING NAME",
-            "addressLines": [
-                "PO BOX 1234",
-                "BLANTYRE",
-                "* NAMIWAWA SERVICE CENTRE *"
-            ],
-            "offlineLimit": {
-                "maxTransactionAgeInHours": 48,
-                "maxCummulativeAmount": 5000000
-            }
-        },
-        "taxpayerConfiguration": {
-            "versionNo": 1,
-            "tin": "20202020",
-            "isVATRegistered": True,
-            "taxOffice": {
-                "code": "BLA",
-                "name": "Blantyre Station"
-            },
-            "activatedTaxRateIds": [
-                "A", "E", "TL"
-            ]
-        }
-    },
-    "errors": [
-    ]
-}
-
 
 @pytest.mark.asyncio
 @respx.mock

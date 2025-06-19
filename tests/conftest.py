@@ -180,7 +180,7 @@ def test_terminal(test_db: Session, test_tenant: Tenant):
 
 
 @pytest.fixture
-def test_product(test_db: Session, test_tenant: Tenant, test_terminal: Terminal):
+def test_product(test_db: Session, test_tenant: Tenant, test_terminal: Terminal, test_tax_rate):
     product = test_db.query(Product).filter(Product.tenant_id == test_tenant.id).first()
     if product: return product
     product = Product(
@@ -192,7 +192,7 @@ def test_product(test_db: Session, test_tenant: Tenant, test_terminal: Terminal)
         unit_of_measure="kg",
         unit_price=100,
         description="test product",
-        tax_rate_id="A",
+        tax_rate_id=test_tax_rate.rate_id,
         is_product=True,
     )
     test_db.add(product)

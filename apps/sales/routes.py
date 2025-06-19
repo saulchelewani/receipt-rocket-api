@@ -23,7 +23,7 @@ router = APIRouter(
 @router.post("/", dependencies=[Depends(get_current_user)])
 async def submit_a_transaction(
         request: TransactionRequest,
-        x_device_id: Annotated[constr(pattern="^\w{16}$"), Header()],
+        x_device_id: Annotated[constr(pattern="^\w{16}$"), Header(..., description="Device ID of the terminal")],
         db: Session = Depends(get_db)):
 
     terminal = db.query(Terminal).filter(Terminal.device_id == x_device_id).first()
@@ -31,7 +31,7 @@ async def submit_a_transaction(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Device ID is not recognized")
 
     if not terminal.tenant.tin:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Config is not saved")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Tax payer config is not saved")
 
     global_config = db.query(GlobalConfig).first()
     if not global_config:
@@ -47,7 +47,7 @@ async def submit_a_transaction(
         if not product:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Product not found")
 
-        db_tax_rate = db.query(TaxRate).filter(TaxRate.id == item.tax_rate_id).first()
+        db_tax_rate = db.query(TaxRate).filter(TaxRate.rate_id == product.tax_rate_id).first()
         if not db_tax_rate:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Tax rate not found")
 

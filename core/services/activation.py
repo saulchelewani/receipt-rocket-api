@@ -1,4 +1,5 @@
 import uuid
+from typing import Any
 
 import httpx
 from fastapi import HTTPException
@@ -10,7 +11,12 @@ from core.settings import settings
 from core.utils import sign_hmac_sha512, get_sequence_number
 
 
-async def activate_terminal(code: str, tenant: Tenant, db: Session, x_mac_address: str | None = None):
+async def activate_terminal(
+        code: str,
+        tenant: Tenant,
+        db: Session,
+        x_mac_address: str | None = None
+) -> type[Terminal] | Terminal:
     result = await activate_terminal_with_code(code, x_mac_address)
 
     if not result:
@@ -26,7 +32,12 @@ async def activate_terminal(code: str, tenant: Tenant, db: Session, x_mac_addres
     )
 
 
-def sync_terminal_config(db: Session, config: dict, tenant: Tenant, terminal_id: Terminal.terminal_id | None = None):
+def sync_terminal_config(
+        db: Session,
+        config: dict,
+        tenant: Tenant,
+        terminal_id: Terminal.terminal_id | None = None
+) -> type[Terminal] | Terminal:
     db_terminal = db.query(Terminal).filter(
         Terminal.label == config['terminalLabel'],
         Terminal.terminal_id == terminal_id
@@ -66,7 +77,7 @@ def sync_terminal_config(db: Session, config: dict, tenant: Tenant, terminal_id:
     return db_terminal
 
 
-async def confirm_terminal_activation(terminal):
+async def confirm_terminal_activation(terminal) -> dict[str, Any]:
     headers = {
         "accept": "text/plain",
         "x-signature": sign_hmac_sha512(terminal.terminal_id, terminal.secret_key),
@@ -89,7 +100,7 @@ async def confirm_terminal_activation(terminal):
         return response.json()
 
 
-async def activate_terminal_with_code(code: str, mac_address: str) -> dict:
+async def activate_terminal_with_code(code: str, mac_address: str) -> dict[str, Any]:
     payload = {
         "terminalActivationCode": code,
         "environment": {
@@ -119,7 +130,7 @@ async def activate_terminal_with_code(code: str, mac_address: str) -> dict:
         raise HTTPException(status_code=400, detail=str(e))
 
 
-def sync_global_config(db: Session, config: dict):
+def sync_global_config(db: Session, config: dict[str, Any]) -> list[type[TaxRate]]:
     db_global_config = db.query(GlobalConfig).first()
     if db_global_config and db_global_config.version == config["versionNo"]:
         return db.query(TaxRate).all()

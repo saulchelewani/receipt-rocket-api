@@ -22,7 +22,8 @@ router = APIRouter(
 async def get_config(
         user: User = Depends(get_current_user),
         x_device_id: str = Header(...),
-        db: Session = Depends(get_db)):
+        db: Session = Depends(get_db)
+):
     tenant = user.tenant
     if not tenant:
         raise HTTPException(status_code=400, detail="Tenant not found")
@@ -36,7 +37,6 @@ async def get_config(
     tax_rates = sync_global_config(db, config["data"]["globalConfiguration"])
     profile = save_tax_payer_config(db, tenant, config["data"]["taxpayerConfiguration"])
     terminal = sync_terminal_config(db, config["data"]["terminalConfiguration"], tenant, terminal.terminal_id)
-
 
     response = {
         "tax_rates": tax_rates,
@@ -73,7 +73,7 @@ def save_tax_rates(db: Session, tax_rates: list[dict[str, Any]], config_id: UUID
     return rates
 
 
-def save_terminal_config(db: Session, terminal, terminal_config: dict) -> Terminal:
+def save_terminal_config(db: Session, terminal: Terminal, terminal_config: dict[str, Any]) -> Terminal:
     terminal_dict = {
         'trading_name': terminal_config['tradingName'],
         'email': terminal_config['emailAddress'],
