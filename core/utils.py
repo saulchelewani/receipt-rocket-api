@@ -63,9 +63,51 @@ mac_address_regex = r'^([0-9A-Fa-f]{2}([-:])){5}([0-9A-Fa-f]{2})$'
 email_regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
 
 
-def generate_invoice_number():
-    return "INV" + datetime.now().strftime("%Y%m%d%H%M%S")
-
-
 def calculate_tax(amount, tax_rate) -> float:
     return amount / (1 + tax_rate / 100)
+
+
+def b10_2_b64(number: int) -> str:
+    base64_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+
+    if number == 0:
+        return "A"
+    result = ""
+    while number > 0:
+        remainder = number % 64
+        result = base64_chars[remainder] + result
+        number //= 64
+    return result
+
+
+def to_julian_date(date: datetime) -> int:
+    year = date.year
+    month = date.month
+    day = date.day
+
+    if month <= 2:
+        year -= 1
+        month += 12
+
+    a = year // 100
+    b = 2 - a + (a // 4)
+
+    return int((365.25 * (year + 4716))) + int((30.6001 * (month + 1))) + day + b - 1524
+
+
+def generate_combined_string(
+        taxpayer_id: int,
+        position: int,
+        julian_date: int,
+        transaction_count: int
+) -> str:
+    return f"{b10_2_b64(taxpayer_id)}-{b10_2_b64(position)}-{b10_2_b64(julian_date)}-{b10_2_b64(transaction_count)}"
+
+
+def generate_invoice_number(
+        taxpayer_id: int,
+        position: int,
+        transaction_date: datetime,
+        transaction_count: int
+) -> str:
+    return generate_combined_string(taxpayer_id, position, to_julian_date(transaction_date), transaction_count)

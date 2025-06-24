@@ -2,7 +2,7 @@
   "statusCode": 0,
   "remark": "string",
   "data": {
-    "validationURL": "string",
+    "validationURL": "https://eservices.mra.mw/doc/v/?vc=90241313200014&c=fdd8d5ccc06a49d6a1efbf7e3896f0b4",
     "shouldDownloadLatestConfig": true,
     "shouldBlockTerminal": true,
     "validationErrors": [

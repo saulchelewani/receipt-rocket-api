@@ -11,6 +11,7 @@ from apps.sales.schema import TransactionRequest
 from core.auth import get_current_user
 from core.database import get_db
 from core.models import Terminal, GlobalConfig, Product, TaxRate
+from core.services.sales import submit_transaction
 from core.utils import generate_invoice_number, calculate_tax
 
 router = APIRouter(
@@ -25,7 +26,6 @@ async def submit_a_transaction(
         request: TransactionRequest,
         x_device_id: Annotated[constr(pattern="^\w{16}$"), Header(..., description="Device ID of the terminal")],
         db: Session = Depends(get_db)):
-
     terminal = db.query(Terminal).filter(Terminal.device_id == x_device_id).first()
     if not terminal:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Device ID is not recognized")
@@ -70,7 +70,7 @@ async def submit_a_transaction(
         invoice_total += amount
 
         line_items.append({
-            "id": uuid.uuid4(),
+            "id": str(uuid.uuid4()),
             "productCode": item.product_code,
             "description": product.description,
             "unitPrice": round(taxable_unit_price, 2),
@@ -92,7 +92,7 @@ async def submit_a_transaction(
 
     invoice = {
         "invoiceHeader": {
-            "invoiceNumber": generate_invoice_number(),
+            "invoiceNumber": generate_invoice_number(int(terminal.tenant.tin), 1, datetime.now(), 1),
             "invoiceDateTime": datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
             "sellerTIN": terminal.tenant.tin,
             "buyerTIN": request.buyer_tin,
@@ -120,4 +120,11 @@ async def submit_a_transaction(
         }
     }
 
-    return invoice
+    try:
+        response = await submit_transaction(invoice)
+        if response["statusCode"] != 0:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=response["remark"])
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+    return response
