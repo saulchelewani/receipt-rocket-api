@@ -172,6 +172,7 @@ def test_terminal(test_db: Session, test_tenant: Tenant):
                         config_version=1,
                         site_id=uuid.uuid4(),
                         label='Terminal 1',
+                        token=get_sequence_number(),
                         device_id=get_sequence_number())
     test_db.add(terminal)
     test_db.commit()
@@ -192,7 +193,7 @@ def test_product(test_db: Session, test_tenant: Tenant, test_terminal: Terminal,
         unit_of_measure="kg",
         unit_price=100,
         description="test product",
-        tax_rate_id=test_tax_rate.rate_id,
+        tax_rate_id=str(test_tax_rate.rate_id),
         is_product=True,
     )
     test_db.add(product)

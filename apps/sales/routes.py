@@ -30,6 +30,9 @@ async def submit_a_transaction(
     if not terminal:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Device ID is not recognized")
 
+    if not terminal.token:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Terminal not activated")
+
     if not terminal.tenant.tin:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Tax payer config is not saved")
 
@@ -98,7 +101,7 @@ async def submit_a_transaction(
             "buyerTIN": request.buyer_tin,
             "buyerName": request.buyer_name,
             "buyerAuthorizationCode": request.buyer_authorization_code,
-            "siteId": None,
+            "siteId": str(terminal.site_id),
             "globalConfigVersion": global_config.version,
             "taxpayerConfigVersion": terminal.tenant.config_version,
             "terminalConfigVersion": terminal.config_version,
@@ -121,10 +124,14 @@ async def submit_a_transaction(
     }
 
     try:
-        response = await submit_transaction(invoice)
-        if response["statusCode"] != 0:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=response["remark"])
+        response = await submit_transaction(invoice, terminal)
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
-    return response
+    if not response.success():
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=response.remark)
+
+    return {
+        "validation_url": response.validation_url(),
+        "invoice": invoice,
+    }

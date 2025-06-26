@@ -84,6 +84,9 @@ class Tenant(Model):
     profile: Mapped["Profile"] = relationship("Profile", back_populates="tenant")
     terminals: Mapped[list["Terminal"]] = relationship("Terminal", back_populates="tenant")
     products: Mapped[list["Product"]] = relationship("Product", back_populates="tenant")
+    offline_transactions: Mapped[list["OfflineTransaction"]] = relationship(
+        "OfflineTransaction", back_populates="tenant"
+    )
 
 
 class Route(Model):
@@ -134,6 +137,23 @@ class Terminal(Model):
     site_name: Mapped[str] = Column(String, nullable=True)
 
     tenant: Mapped["Tenant"] = relationship("Tenant", back_populates="terminals")
+    offline_transactions: Mapped[list["OfflineTransaction"]] = relationship(
+        "OfflineTransaction", back_populates="terminal"
+    )
+
+
+class OfflineTransaction(Model):
+    __tablename__ = "offline_transactions"
+
+    tenant_id: Mapped[UUID] = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
+    terminal_id: Mapped[UUID] = Column(UUID(as_uuid=True), ForeignKey("terminals.id"), nullable=False)
+    transaction_id: Mapped[str] = Column(String, nullable=False)
+    details: Mapped[dict] = Column(JSON, nullable=False)
+    submitted_at: Mapped[DateTime] = Column(DateTime, nullable=True)
+    status: Mapped[str] = Column(String, nullable=True)
+
+    tenant: Mapped["Tenant"] = relationship("Tenant", back_populates="offline_transactions")
+    terminal: Mapped["Terminal"] = relationship("Terminal", back_populates="offline_transactions")
 
 
 class TaxRate(Model):

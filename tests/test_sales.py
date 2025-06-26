@@ -50,6 +50,9 @@ def test_make_a_sale(client, test_db, device_headers, test_terminal, test_produc
     })
 
     print(response.json())
-    # assert response.status_code == 200
+
+    assert response.status_code == 200
+    assert response.json()["validation_url"] is not None
+    assert isinstance(response.json()["invoice"], dict)
 
     # assert response.status_code == 400
