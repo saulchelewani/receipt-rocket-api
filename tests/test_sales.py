@@ -6,7 +6,7 @@ import respx
 from httpx import Response, ConnectTimeout
 
 from apps.sales.schema import PaymentMethod
-from core.models import Product
+from core.models import Product, OfflineTransaction
 from core.settings import settings
 from core.utils import get_random_number
 
@@ -77,3 +77,6 @@ def test_make_an_offline_sale(client, test_db, device_headers, test_terminal, te
     assert response.json()["remark"] == "Transaction saved offline"
     assert response.json()["validation_url"] is not None
     assert isinstance(response.json()["invoice"], dict)
+    txn = test_db.query(OfflineTransaction).filter(
+        OfflineTransaction.transaction_id == response.json()["invoice"]["invoiceHeader"]["invoiceNumber"]).first()
+    assert txn is not None

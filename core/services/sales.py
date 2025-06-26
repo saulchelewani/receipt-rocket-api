@@ -7,7 +7,7 @@ from core.settings import settings
 from core.utils import sign_hmac_sha512
 
 
-async def submit_transaction(transaction, terminal) -> SalesResponse:
+async def submit_transaction(transaction, terminal, db) -> SalesResponse:
     try:
         async with httpx.AsyncClient(timeout=settings.MRA_EIS_TIMEOUT) as client:
             response = await client.post(
@@ -29,6 +29,7 @@ async def submit_transaction(transaction, terminal) -> SalesResponse:
             tenant_id=terminal.tenant_id
         )
         terminal.offline_transactions.append(record)
+        db.commit()
         return SalesResponse({
             "statusCode": 0,
             "remark": "Transaction saved offline",

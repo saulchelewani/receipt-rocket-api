@@ -124,7 +124,7 @@ async def submit_a_transaction(
     }
 
     try:
-        response = await submit_transaction(invoice, terminal)
+        response = await submit_transaction(invoice, terminal, db)
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
