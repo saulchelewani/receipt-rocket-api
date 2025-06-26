@@ -134,4 +134,5 @@ async def submit_a_transaction(
     return {
         "validation_url": response.validation_url(),
         "invoice": invoice,
+        "remark": response.remark()
     }

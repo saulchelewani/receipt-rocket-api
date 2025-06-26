@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 import respx
-from httpx import Response
+from httpx import Response, ConnectTimeout
 
 from apps.sales.schema import PaymentMethod
 from core.models import Product
@@ -49,10 +49,31 @@ def test_make_a_sale(client, test_db, device_headers, test_terminal, test_produc
         ]
     })
 
-    print(response.json())
-
     assert response.status_code == 200
     assert response.json()["validation_url"] is not None
     assert isinstance(response.json()["invoice"], dict)
 
-    # assert response.status_code == 400
+
+@pytest.mark.asyncio
+@respx.mock
+def test_make_an_offline_sale(client, test_db, device_headers, test_terminal, test_product, test_global_config):
+    respx.post(f"{settings.MRA_EIS_URL}/sales/submit-sales-transaction").mock(
+        side_effect=ConnectTimeout("Connection timed out"))
+
+    response = client.post("/api/v1/sales", headers=device_headers, json={
+        "payment_method": PaymentMethod.MOBILE_MONEY,
+        "buyer_name": "John Doe",
+        "buyer_tin": get_random_number(9),
+        "buyer_authorization_code": get_random_number(9),
+        "invoice_line_items": [
+            {
+                "product_code": test_product.code,
+                "quantity": 1,
+            },
+        ]
+    })
+
+    assert response.status_code == 200
+    assert response.json()["remark"] == "Transaction saved offline"
+    assert response.json()["validation_url"] is not None
+    assert isinstance(response.json()["invoice"], dict)
