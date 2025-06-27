@@ -4,6 +4,7 @@ from pathlib import Path
 import pytest
 import respx
 from httpx import Response, ConnectTimeout
+from starlette import status
 
 from apps.sales.schema import PaymentMethod
 from core.models import Product, OfflineTransaction
@@ -11,14 +12,16 @@ from core.settings import settings
 from core.utils import get_random_number
 
 
+def get_mock_data(filename: str):
+    mock_path = Path(__file__).parent / "data" / filename
+    return json.loads(mock_path.read_text())
+
+
 @pytest.mark.asyncio
 @respx.mock
 def test_make_a_sale(client, test_db, device_headers, test_terminal, test_product, test_global_config):
-    mock_path = Path(__file__).parent / "data" / "sales_response.json"
-    mock_data = json.loads(mock_path.read_text())
-
     respx.post(f"{settings.MRA_EIS_URL}/sales/submit-sales-transaction").mock(
-        return_value=Response(200, json=mock_data))
+        return_value=Response(200, json=get_mock_data(filename="sales_response.json")))
 
     product = Product(
         tenant_id=test_terminal.tenant_id,
@@ -33,7 +36,7 @@ def test_make_a_sale(client, test_db, device_headers, test_terminal, test_produc
     test_db.refresh(product)
 
     response = client.post("/api/v1/sales", headers=device_headers, json={
-        "payment_method": PaymentMethod.MOBILE_MONEY.name,
+        "payment_method": PaymentMethod.MOBILE_MONEY,
         "buyer_name": "John Doe",
         "buyer_tin": get_random_number(9),
         "buyer_authorization_code": get_random_number(9),
@@ -61,7 +64,7 @@ def test_make_an_offline_sale(client, test_db, device_headers, test_terminal, te
         side_effect=ConnectTimeout("Connection timed out"))
 
     response = client.post("/api/v1/sales", headers=device_headers, json={
-        "payment_method": PaymentMethod.MOBILE_MONEY.value,
+        "payment_method": PaymentMethod.MOBILE_MONEY,
         "buyer_name": "John Doe",
         "buyer_tin": get_random_number(9),
         "buyer_authorization_code": get_random_number(9),
@@ -85,14 +88,11 @@ def test_make_an_offline_sale(client, test_db, device_headers, test_terminal, te
 @pytest.mark.asyncio
 @respx.mock
 def test_make_sale_with_discount(client, test_db, device_headers, test_terminal, test_product, test_global_config):
-    mock_path = Path(__file__).parent / "data" / "sales_response.json"
-    mock_data = json.loads(mock_path.read_text())
-
     respx.post(f"{settings.MRA_EIS_URL}/sales/submit-sales-transaction").mock(
-        return_value=Response(200, json=mock_data))
+        return_value=Response(200, json=get_mock_data(filename="sales_response.json")))
 
     response = client.post("/api/v1/sales", headers=device_headers, json={
-        "payment_method": PaymentMethod.MOBILE_MONEY.value,
+        "payment_method": PaymentMethod.MOBILE_MONEY,
         "buyer_name": "John Doe",
         "buyer_tin": get_random_number(9),
         "buyer_authorization_code": get_random_number(9),
@@ -111,3 +111,76 @@ def test_make_sale_with_discount(client, test_db, device_headers, test_terminal,
     assert response.json()["invoice"]["invoiceLineItems"][0]["discount"] == 10
     assert response.json()["invoice"]["invoiceLineItems"][0]["total"] == 90
     assert response.json()["invoice"]["invoiceLineItems"][0]["totalVAT"] == 12.75
+
+
+@pytest.mark.asyncio
+@respx.mock
+def test_make_a_sale_without_buyer_details(client, test_db, device_headers, test_terminal, test_product,
+                                           test_global_config):
+    respx.post(f"{settings.MRA_EIS_URL}/sales/submit-sales-transaction").mock(
+        return_value=Response(200, json=get_mock_data(filename="sales_response.json")))
+
+    response = client.post("/api/v1/sales", headers=device_headers, json={
+        "payment_method": PaymentMethod.MOBILE_MONEY,
+        "invoice_line_items": [
+            {
+                "product_code": test_product.code,
+                "quantity": 1,
+            }
+        ]
+    })
+
+    assert response.status_code == 200
+    assert response.json()["validation_url"] is not None
+    assert isinstance(response.json()["invoice"], dict)
+
+
+@pytest.mark.asyncio
+@respx.mock
+def test_make_a_sale_for_relief_without_certificate(client, test_db, device_headers, test_terminal, test_product,
+                                                    test_global_config):
+    respx.post(f"{settings.MRA_EIS_URL}/sales/submit-sales-transaction").mock(
+        return_value=Response(200, json=get_mock_data(filename="sales_response.json")))
+
+    response = client.post("/api/v1/sales", headers=device_headers, json={
+        "payment_method": PaymentMethod.MOBILE_MONEY,
+        "is_relief_supply": True,
+        "invoice_line_items": [
+            {
+                "product_code": test_product.code,
+                "quantity": 1,
+            }
+        ]
+    })
+
+    assert response.status_code == 400
+
+
+@pytest.mark.asyncio
+@respx.mock
+def test_make_a_sale_for_relief(client, test_db, device_headers, test_terminal, test_product,
+                                test_global_config):
+    respx.post(f"{settings.MRA_EIS_URL}/sales/submit-sales-transaction").mock(
+        return_value=Response(200, json=get_mock_data(filename="sales_response.json")))
+
+    response = client.post("/api/v1/sales", headers=device_headers, json={
+        "payment_method": PaymentMethod.MOBILE_MONEY,
+        "is_relief_supply": True,
+        "vat5_certificate_details": {
+            "project_number": "123",
+            "certificate_number": "123",
+            "quantity": 1
+        },
+        "invoice_line_items": [
+            {
+                "product_code": test_product.code,
+                "quantity": 1,
+            }
+        ]
+    })
+
+    assert response.status_code == status.HTTP_200_OK
+    cert = response.json()["invoice"]["invoiceHeader"]["vat5CertificateDetails"]
+    assert cert["projectNumber"] == "123"
+    assert cert["certificateNumber"] == "123"
+    assert cert["quantity"] == 1

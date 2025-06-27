@@ -26,6 +26,9 @@ async def submit_a_transaction(
         request: TransactionRequest,
         x_device_id: Annotated[constr(pattern="^\w{16}$"), Header(..., description="Device ID of the terminal")],
         db: Session = Depends(get_db)):
+    if request.is_relief_supply and not request.vat5_certificate_details:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="VAT5 certificate details is required")
+
     terminal = db.query(Terminal).filter(Terminal.device_id == x_device_id).first()
     if not terminal:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Device ID is not recognized")
@@ -94,6 +97,12 @@ async def submit_a_transaction(
             "taxAmount": round(breakdown["taxAmount"], 2),
         })
 
+    vat5_certificate_details = {
+        "projectNumber": request.vat5_certificate_details.project_number,
+        "certificateNumber": request.vat5_certificate_details.certificate_number,
+        "quantity": request.vat5_certificate_details.quantity
+    } if request.is_relief_supply else None
+
     invoice = {
         "invoiceHeader": {
             "invoiceNumber": generate_invoice_number(int(terminal.tenant.tin), 1, datetime.now(), 1),
@@ -107,12 +116,7 @@ async def submit_a_transaction(
             "taxpayerConfigVersion": terminal.tenant.config_version,
             "terminalConfigVersion": terminal.config_version,
             "isReliefSupply": request.is_relief_supply,
-            "vat5CertificateDetails": {
-                "id": str(uuid.uuid4()),
-                "projectNumber": "string",
-                "certificateNumber": "string",
-                "quantity": 0
-            },
+            "vat5CertificateDetails": vat5_certificate_details,
             "paymentMethod": request.payment_method
         },
         "invoiceLineItems": line_items,

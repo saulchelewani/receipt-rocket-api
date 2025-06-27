@@ -18,11 +18,23 @@ class InvoiceLineItem(BaseModel):
     discount: float = 0
 
 
+class VAT5CertificateDetails(BaseModel):
+    projectNumber: str
+    certificateNumber: str
+    quantity: int
+
+
+class VAT5CertificateDetailsRequest(BaseModel):
+    project_number: str
+    certificate_number: str
+    quantity: int
+
 class TransactionRequest(BaseModel):
     buyer_tin: str | None = None
     buyer_name: str | None = None
     buyer_authorization_code: str | None = None
     is_relief_supply: bool | None = False
+    vat5_certificate_details: VAT5CertificateDetailsRequest | None = None
     payment_method: PaymentMethod
     invoice_line_items: conlist(InvoiceLineItem, min_length=1)
 
@@ -30,12 +42,6 @@ class TransactionRequest(BaseModel):
     def validate_payment_method(cls, value):
         return value.upper() if isinstance(value, str) else value
 
-
-class VAT5CertificateDetails(BaseModel):
-    id: str
-    projectNumber: str
-    certificateNumber: str
-    quantity: int
 
 
 class InvoiceHeader(BaseModel):
