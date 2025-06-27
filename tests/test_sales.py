@@ -248,3 +248,15 @@ def test_make_a_sale_outdated_config(client, test_db, device_headers, test_termi
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json()["detail"] == "Update terminal configuration"
+
+
+@pytest.mark.asyncio
+@respx.mock
+def test_send_offline_transaction(client, test_db, test_offline_transaction):
+    respx.post(f"{settings.MRA_EIS_URL}/sales/submit-sales-transaction").mock(
+        return_value=Response(200, json=get_mock_data(filename="sales_response.json")))
+
+    response = client.post("/api/v1/sales/sync")
+    assert response.status_code == status.HTTP_200_OK
+    test_db.refresh(test_offline_transaction)
+    assert test_offline_transaction.submitted_at is not None

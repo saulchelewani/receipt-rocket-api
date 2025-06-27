@@ -11,7 +11,7 @@ from core.auth import is_global_admin, get_current_user, has_permission
 from core.database import get_db
 from core.models import Role, Route
 
-router = APIRouter(prefix="/roles", tags=["roles"], dependencies=[Depends(get_current_user), Depends(has_permission)])
+router = APIRouter(prefix="/roles", tags=["Roles"], dependencies=[Depends(get_current_user), Depends(has_permission)])
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=RoleRead,

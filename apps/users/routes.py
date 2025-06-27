@@ -11,7 +11,7 @@ from core.database import get_db
 from core.enums import Scope
 from core.models import Tenant, User, Role
 
-router = APIRouter(prefix="/users", tags=["users"], dependencies=[Depends(get_current_user), Depends(has_permission)])
+router = APIRouter(prefix="/users", tags=["Users"], dependencies=[Depends(get_current_user), Depends(has_permission)])
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=UserRead)

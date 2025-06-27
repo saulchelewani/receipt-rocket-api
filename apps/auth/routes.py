@@ -13,7 +13,7 @@ from core.enums import Scope
 from core.models import User
 from core.settings import settings
 
-router = APIRouter(prefix="/auth", tags=["auth"])
+router = APIRouter(prefix="/auth", tags=["Auth"])
 limiter = Limiter(key_func=get_remote_address)
 
 

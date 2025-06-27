@@ -14,7 +14,7 @@ from core.auth import create_access_token
 from core.database import Base, get_db
 from core.enums import RoleEnum, Scope
 from core.models import Tenant, Role, User, Terminal, Profile, role_route_association, Route, Product, Item, TaxRate, \
-    GlobalConfig
+    GlobalConfig, OfflineTransaction
 from core.settings import settings
 from core.utils import get_sequence_number, get_random_number
 
@@ -368,6 +368,22 @@ def get_mock_data(filename: str):
     mock_path = Path(__file__).parent / "data" / filename
     return json.loads(mock_path.read_text())
 
+
+@pytest.fixture
+def test_offline_transaction(test_db: Session, test_tenant, test_terminal):
+    offline_transaction = test_db.query(OfflineTransaction).first()
+    if offline_transaction: return offline_transaction
+    offline_transaction = OfflineTransaction(
+        transaction_id="test_transaction_id",
+        tenant_id=test_tenant.id,
+        terminal_id=test_terminal.id,
+        details={},
+        submitted_at=None,
+    )
+    test_db.add(offline_transaction)
+    test_db.commit()
+    test_db.refresh(offline_transaction)
+    return offline_transaction
 #
 # def create_route(test_db: Session) -> Route:
 #     route = Route(path='/', method='GET', action='GET:/', name="Get user list")

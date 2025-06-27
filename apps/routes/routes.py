@@ -8,7 +8,7 @@ from core.auth import is_global_admin
 from core.database import get_db
 from core.models import Route
 
-router = APIRouter(prefix="/routes", tags=["routes"])
+router = APIRouter(prefix="/routes", tags=["Routes"])
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=RouteRead,
