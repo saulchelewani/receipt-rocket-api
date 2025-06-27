@@ -78,5 +78,35 @@ def test_make_an_offline_sale(client, test_db, device_headers, test_terminal, te
     assert response.json()["validation_url"] is not None
     assert isinstance(response.json()["invoice"], dict)
     txn = test_db.query(OfflineTransaction).filter(
-        OfflineTransaction.transaction_id == response.json()["invoice"]["invoiceHeader"]["invoiceNumber"]).first()
+        OfflineTransaction.transaction_id == response.json()["invoice"]["invoiceHeader"]["invoiceNumber"]).count()
     assert txn is not None
+
+
+@pytest.mark.asyncio
+@respx.mock
+def test_make_sale_with_discount(client, test_db, device_headers, test_terminal, test_product, test_global_config):
+    mock_path = Path(__file__).parent / "data" / "sales_response.json"
+    mock_data = json.loads(mock_path.read_text())
+
+    respx.post(f"{settings.MRA_EIS_URL}/sales/submit-sales-transaction").mock(
+        return_value=Response(200, json=mock_data))
+
+    response = client.post("/api/v1/sales", headers=device_headers, json={
+        "payment_method": PaymentMethod.MOBILE_MONEY,
+        "buyer_name": "John Doe",
+        "buyer_tin": get_random_number(9),
+        "buyer_authorization_code": get_random_number(9),
+        "invoice_line_items": [
+            {
+                "product_code": test_product.code,
+                "quantity": 1,
+                "discount": 10
+            },
+        ]
+    })
+
+    assert response.status_code == 200
+    assert response.json()["validation_url"] is not None
+    assert isinstance(response.json()["invoice"], dict)
+    assert response.json()["invoice"]["invoiceLineItems"][0]["discount"] == 10
+    print(response.json()["invoice"])

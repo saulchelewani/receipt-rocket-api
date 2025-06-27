@@ -54,11 +54,12 @@ async def submit_a_transaction(
         if not db_tax_rate:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Tax rate not found")
 
-        amount = product.unit_price * item.quantity
+        selling_price = product.unit_price - item.discount
+        amount = selling_price * item.quantity
 
         rate_id = db_tax_rate.rate_id
         taxable_amount = calculate_tax(amount, db_tax_rate.rate)
-        taxable_unit_price = calculate_tax(product.unit_price, db_tax_rate.rate)
+        taxable_unit_price = calculate_tax(selling_price, db_tax_rate.rate)
         tax_amount = amount - taxable_amount
 
         if rate_id not in tax_breakdown:
@@ -78,7 +79,7 @@ async def submit_a_transaction(
             "description": product.description,
             "unitPrice": round(taxable_unit_price, 2),
             "quantity": item.quantity,
-            "discount": 0,
+            "discount": item.discount,
             "total": round(taxable_amount, 2),
             "totalVAT": round(tax_amount, 2),
             "taxRateId": db_tax_rate.rate_id,

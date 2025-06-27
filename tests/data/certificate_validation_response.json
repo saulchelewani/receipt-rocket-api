@@ -1,0 +1,12 @@
+{
+  "statusCode": 1,
+  "remark": "VAT 5 certificate validation succeeded.",
+  "data": {
+    "projectNumber": "VATF/00000132/2024",
+    "certificateNumber": "MRA/BMTO/VAT5/000169",
+    "quantity": 80,
+    "dateOfIssue": "2024-02-23T00:00:00",
+    "dateOfExpiry": "2024-03-24T00:00:00"
+  },
+  "errors": null
+}
