@@ -7,3 +7,8 @@ class BlockStatusResponse(BaseResponse):
 
     def blocking_reason(self) -> str:
         return self.body["data"]["blockingReason"]
+
+
+class UnblockStatusResponse(BaseResponse):
+    def is_unblocked(self) -> bool:
+        return self.body["data"]["isUnblocked"]

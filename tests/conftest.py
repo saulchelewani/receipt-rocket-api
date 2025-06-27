@@ -1,6 +1,8 @@
+import json
 import os
 import uuid
 from datetime import timedelta
+from pathlib import Path
 
 import pytest
 from sqlalchemy import create_engine, StaticPool, insert
@@ -360,6 +362,11 @@ def get_test_file(filename: str):
     response_file_path = os.path.join(os.path.dirname(__file__), 'data', filename)
     with open(response_file_path, "r") as file:
         return file.read()
+
+
+def get_mock_data(filename: str):
+    mock_path = Path(__file__).parent / "data" / filename
+    return json.loads(mock_path.read_text())
 
 #
 # def create_route(test_db: Session) -> Route:

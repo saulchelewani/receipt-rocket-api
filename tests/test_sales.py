@@ -1,6 +1,3 @@
-import json
-from pathlib import Path
-
 import pytest
 import respx
 from httpx import Response, ConnectTimeout
@@ -10,11 +7,7 @@ from apps.sales.schema import PaymentMethod
 from core.models import Product, OfflineTransaction
 from core.settings import settings
 from core.utils import get_random_number
-
-
-def get_mock_data(filename: str):
-    mock_path = Path(__file__).parent / "data" / filename
-    return json.loads(mock_path.read_text())
+from tests.conftest import get_mock_data
 
 
 @pytest.mark.asyncio
