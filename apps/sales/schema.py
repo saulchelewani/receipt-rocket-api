@@ -5,11 +5,11 @@ from pydantic import BaseModel, field_validator, conlist
 
 
 class PaymentMethod(str, Enum):
-    CASH = "CASH"
-    CARD = "CARD"
-    CHECK = "CHECK"
-    BANK_TRANSFER = "BANK_TRANSFER"
-    MOBILE_MONEY = "MOBILE_MONEY"
+    CASH = "cash"
+    CARD = "card"
+    CHECK = "check"
+    BANK_TRANSFER = "bank_transfer"
+    MOBILE_MONEY = "mobile_money"
 
 
 class InvoiceLineItem(BaseModel):
@@ -40,7 +40,7 @@ class TransactionRequest(BaseModel):
 
     @field_validator("payment_method")
     def validate_payment_method(cls, value):
-        return value.upper() if isinstance(value, str) else value
+        return value.lower() if isinstance(value, str) else value
 
 
 

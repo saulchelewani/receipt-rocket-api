@@ -206,4 +206,24 @@ def test_make_a_sale_blocked_terminal(client, test_db, device_headers, test_term
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json()["detail"] == "Terminal is blocked"
     assert test_db.query(Terminal).filter(Terminal.id == test_terminal.id).first().is_blocked
-    # print(terminal.is_blocked)
+
+
+@pytest.mark.asyncio
+@respx.mock
+def test_make_a_sale_cached_blocked_terminal(client, test_db, device_headers, test_terminal, test_product,
+                                             test_global_config):
+    test_terminal.is_blocked = True
+    test_db.commit()
+
+    response = client.post("/api/v1/sales", headers=device_headers, json={
+        "payment_method": PaymentMethod.CASH,
+        "invoice_line_items": [
+            {
+                "product_code": test_product.code,
+                "quantity": 3,
+            }
+        ]
+    })
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json()["detail"] == "Terminal is blocked"
