@@ -77,10 +77,10 @@ async def submit_a_transaction(
             "id": str(uuid.uuid4()),
             "productCode": item.product_code,
             "description": product.description,
-            "unitPrice": round(taxable_unit_price, 2),
+            "unitPrice": product.unit_price,
             "quantity": item.quantity,
             "discount": item.discount,
-            "total": round(taxable_amount, 2),
+            "total": selling_price,
             "totalVAT": round(tax_amount, 2),
             "taxRateId": db_tax_rate.rate_id,
             "isProduct": product.is_product

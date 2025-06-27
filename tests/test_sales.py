@@ -109,4 +109,5 @@ def test_make_sale_with_discount(client, test_db, device_headers, test_terminal,
     assert response.json()["validation_url"] is not None
     assert isinstance(response.json()["invoice"], dict)
     assert response.json()["invoice"]["invoiceLineItems"][0]["discount"] == 10
-    print(response.json()["invoice"])
+    assert response.json()["invoice"]["invoiceLineItems"][0]["total"] == 90
+    assert response.json()["invoice"]["invoiceLineItems"][0]["totalVAT"] == 12.75
