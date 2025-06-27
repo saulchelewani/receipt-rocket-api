@@ -5,6 +5,7 @@ from pydantic import constr
 from sqlalchemy.orm import Session
 from starlette import status
 
+from apps.terminals.schema import UnblockStatusResponse
 from core.auth import get_current_user
 from core.database import get_db
 from core.models import Terminal
@@ -17,7 +18,7 @@ router = APIRouter(
 )
 
 
-@router.get("/unblock-status", dependencies=[Depends(get_current_user)])
+@router.get("/unblock-status", dependencies=[Depends(get_current_user)], response_model=UnblockStatusResponse)
 async def get_terminal_unblock_status(
         x_device_id: Annotated[constr(pattern="^\w{16}$"), Header(..., description="Device ID of the terminal")],
         db: Session = Depends(get_db),
@@ -35,5 +36,7 @@ async def get_terminal_unblock_status(
         terminal.blocking_reason = None
         db.commit()
     return {
-        "is_unblocked": unblock_status.is_unblocked()
+        "is_unblocked": unblock_status.is_unblocked(),
+        "details": terminal.blocking_reason if terminal.is_blocked else "Terminal is unblocked"
+
     }
