@@ -38,5 +38,4 @@ async def get_terminal_unblock_status(
     return {
         "is_unblocked": unblock_status.is_unblocked(),
         "details": terminal.blocking_reason if terminal.is_blocked else "Terminal is unblocked"
-
     }
