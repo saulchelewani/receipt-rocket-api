@@ -11,6 +11,7 @@ from apps.sales.schema import TransactionRequest, TransactionResponse
 from core.auth import get_current_user
 from core.database import get_db
 from core.models import Terminal, GlobalConfig, Product, TaxRate
+from core.services.blocking import get_blocking_message
 from core.services.sales import submit_transaction
 from core.utils import generate_invoice_number, calculate_tax
 
@@ -137,9 +138,11 @@ async def submit_a_transaction(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
     if response.should_block_terminal():
+        block_response = await get_blocking_message(terminal)
         terminal.is_blocked = True
+        terminal.blocking_reason = block_response.blocking_reason()
         db.commit()
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Terminal is blocked")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=block_response.blocking_reason())
 
     if response.should_download_latest_config():
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Update terminal configuration")

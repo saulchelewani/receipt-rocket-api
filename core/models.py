@@ -136,6 +136,7 @@ class Terminal(Model):
     site_id: Mapped[UUID] = Column(UUID(as_uuid=True), nullable=False)
     site_name: Mapped[str] = Column(String, nullable=True)
     is_blocked: Mapped[bool] = Column(Boolean, nullable=True)
+    blocking_reason: Mapped[str] = Column(String, nullable=True)
 
     tenant: Mapped["Tenant"] = relationship("Tenant", back_populates="terminals")
     offline_transactions: Mapped[list["OfflineTransaction"]] = relationship(

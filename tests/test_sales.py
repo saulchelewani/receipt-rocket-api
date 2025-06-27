@@ -193,6 +193,9 @@ def test_make_a_sale_blocked_terminal(client, test_db, device_headers, test_term
     respx.post(f"{settings.MRA_EIS_URL}/sales/submit-sales-transaction").mock(
         return_value=Response(200, json=get_mock_data(filename="sales_response_blocked_terminal.json")))
 
+    respx.post(f"{settings.MRA_EIS_URL}/utilities/get-terminal-blocking-message").mock(
+        return_value=Response(200, json=get_mock_data(filename="blocking_message_response.json")))
+
     response = client.post("/api/v1/sales", headers=device_headers, json={
         "payment_method": PaymentMethod.MOBILE_MONEY,
         "invoice_line_items": [
@@ -204,7 +207,7 @@ def test_make_a_sale_blocked_terminal(client, test_db, device_headers, test_term
     })
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.json()["detail"] == "Terminal is blocked"
+    assert response.json()["detail"] == "Violation of terms and conditions"
     assert test_db.query(Terminal).filter(Terminal.id == test_terminal.id).first().is_blocked
 
 

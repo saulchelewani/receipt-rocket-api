@@ -1,0 +1,16 @@
+{
+  "statusCode": 0,
+  "remark": "string",
+  "data": {
+    "isBlocked": true,
+    "blockingReason": "Violation of terms and conditions",
+    "blockedAt": "2025-05-28T06:42:59.980Z"
+  },
+  "errors": [
+    {
+      "errorCode": 0,
+      "fieldName": "string",
+      "errorMessage": "string"
+    }
+  ]
+}
