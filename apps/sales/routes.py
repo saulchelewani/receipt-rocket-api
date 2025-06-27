@@ -39,7 +39,8 @@ async def submit_a_transaction(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Device ID is not recognized")
 
     if terminal.is_blocked:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Terminal is blocked")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                            detail=f"Terminal is blocked: {terminal.blocking_reason}")
 
     if not terminal.token:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Terminal not activated")

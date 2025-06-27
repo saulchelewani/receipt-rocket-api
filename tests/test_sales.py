@@ -219,6 +219,7 @@ def test_make_a_sale_blocked_terminal(client, test_db, device_headers, test_term
 def test_make_a_sale_cached_blocked_terminal(client, test_db, device_headers, test_terminal, test_product,
                                              test_global_config):
     test_terminal.is_blocked = True
+    test_terminal.blocking_reason = "Violation of terms and conditions"
     test_db.commit()
 
     response = client.post("/api/v1/sales", headers=device_headers, json={
@@ -232,7 +233,7 @@ def test_make_a_sale_cached_blocked_terminal(client, test_db, device_headers, te
     })
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.json()["detail"] == "Terminal is blocked"
+    assert response.json()["detail"] == "Terminal is blocked: Violation of terms and conditions"
 
 
 @pytest.mark.asyncio
