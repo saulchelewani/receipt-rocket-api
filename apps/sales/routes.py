@@ -29,6 +29,10 @@ async def submit_a_transaction(
     if request.is_relief_supply and not request.vat5_certificate_details:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="VAT5 certificate details is required")
 
+    global_config = db.query(GlobalConfig).first()
+    if not global_config:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Config is not saved")
+
     terminal = db.query(Terminal).filter(Terminal.device_id == x_device_id).first()
     if not terminal:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Device ID is not recognized")
@@ -38,10 +42,6 @@ async def submit_a_transaction(
 
     if not terminal.tenant.tin:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Tax payer config is not saved")
-
-    global_config = db.query(GlobalConfig).first()
-    if not global_config:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Config is not saved")
 
     tax_breakdown = {}
     total_vat = 0
@@ -132,6 +132,11 @@ async def submit_a_transaction(
         response = await submit_transaction(invoice, terminal, db)
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+    if response.should_block_terminal():
+        terminal.is_blocked = True
+        db.commit()
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Terminal is blocked")
 
     if not response.success():
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=response.remark)

@@ -4,7 +4,7 @@
   "data": {
     "validationURL": "https://eservices.mra.mw/doc/v/?vc=90241313200014&c=fdd8d5ccc06a49d6a1efbf7e3896f0b4",
     "shouldDownloadLatestConfig": true,
-    "shouldBlockTerminal": false,
+    "shouldBlockTerminal": true,
     "validationErrors": [
       "string"
     ]

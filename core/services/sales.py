@@ -35,6 +35,8 @@ async def submit_transaction(transaction, terminal, db) -> SalesResponse:
             "remark": "Transaction saved offline",
             "data": {
                 "validationURL": txn_details['invoiceSummary']['offlineSignature'],
+                "shouldDownloadLatestConfig": False,
+                "shouldBlockTerminal": False
             }
         })
     except Exception as e:

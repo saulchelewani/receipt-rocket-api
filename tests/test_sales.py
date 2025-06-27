@@ -7,7 +7,7 @@ from httpx import Response, ConnectTimeout
 from starlette import status
 
 from apps.sales.schema import PaymentMethod
-from core.models import Product, OfflineTransaction
+from core.models import Product, OfflineTransaction, Terminal
 from core.settings import settings
 from core.utils import get_random_number
 
@@ -168,7 +168,7 @@ def test_make_a_sale_for_relief(client, test_db, device_headers, test_terminal, 
         "is_relief_supply": True,
         "vat5_certificate_details": {
             "project_number": "123",
-            "certificate_number": "123",
+            "certificate_number": "1234",
             "quantity": 1
         },
         "invoice_line_items": [
@@ -182,5 +182,28 @@ def test_make_a_sale_for_relief(client, test_db, device_headers, test_terminal, 
     assert response.status_code == status.HTTP_200_OK
     cert = response.json()["invoice"]["invoiceHeader"]["vat5CertificateDetails"]
     assert cert["projectNumber"] == "123"
-    assert cert["certificateNumber"] == "123"
+    assert cert["certificateNumber"] == "1234"
     assert cert["quantity"] == 1
+
+
+@pytest.mark.asyncio
+@respx.mock
+def test_make_a_sale_blocked_terminal(client, test_db, device_headers, test_terminal, test_product,
+                                      test_global_config):
+    respx.post(f"{settings.MRA_EIS_URL}/sales/submit-sales-transaction").mock(
+        return_value=Response(200, json=get_mock_data(filename="sales_response_blocked_terminal.json")))
+
+    response = client.post("/api/v1/sales", headers=device_headers, json={
+        "payment_method": PaymentMethod.MOBILE_MONEY,
+        "invoice_line_items": [
+            {
+                "product_code": test_product.code,
+                "quantity": 1,
+            }
+        ]
+    })
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json()["detail"] == "Terminal is blocked"
+    assert test_db.query(Terminal).filter(Terminal.id == test_terminal.id).first().is_blocked
+    # print(terminal.is_blocked)
