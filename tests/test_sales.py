@@ -33,7 +33,7 @@ def test_make_a_sale(client, test_db, device_headers, test_terminal, test_produc
     test_db.refresh(product)
 
     response = client.post("/api/v1/sales", headers=device_headers, json={
-        "payment_method": PaymentMethod.MOBILE_MONEY,
+        "payment_method": PaymentMethod.MOBILE_MONEY.name,
         "buyer_name": "John Doe",
         "buyer_tin": get_random_number(9),
         "buyer_authorization_code": get_random_number(9),
@@ -61,7 +61,7 @@ def test_make_an_offline_sale(client, test_db, device_headers, test_terminal, te
         side_effect=ConnectTimeout("Connection timed out"))
 
     response = client.post("/api/v1/sales", headers=device_headers, json={
-        "payment_method": PaymentMethod.MOBILE_MONEY,
+        "payment_method": PaymentMethod.MOBILE_MONEY.value,
         "buyer_name": "John Doe",
         "buyer_tin": get_random_number(9),
         "buyer_authorization_code": get_random_number(9),
@@ -92,7 +92,7 @@ def test_make_sale_with_discount(client, test_db, device_headers, test_terminal,
         return_value=Response(200, json=mock_data))
 
     response = client.post("/api/v1/sales", headers=device_headers, json={
-        "payment_method": PaymentMethod.MOBILE_MONEY,
+        "payment_method": PaymentMethod.MOBILE_MONEY.value,
         "buyer_name": "John Doe",
         "buyer_tin": get_random_number(9),
         "buyer_authorization_code": get_random_number(9),

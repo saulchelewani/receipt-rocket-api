@@ -7,7 +7,7 @@ from pydantic import constr
 from sqlalchemy.orm import Session
 from starlette import status
 
-from apps.sales.schema import TransactionRequest
+from apps.sales.schema import TransactionRequest, TransactionResponse
 from core.auth import get_current_user
 from core.database import get_db
 from core.models import Terminal, GlobalConfig, Product, TaxRate
@@ -21,7 +21,7 @@ router = APIRouter(
 )
 
 
-@router.post("/", dependencies=[Depends(get_current_user)])
+@router.post("/", dependencies=[Depends(get_current_user)], response_model=TransactionResponse)
 async def submit_a_transaction(
         request: TransactionRequest,
         x_device_id: Annotated[constr(pattern="^\w{16}$"), Header(..., description="Device ID of the terminal")],
@@ -108,7 +108,7 @@ async def submit_a_transaction(
             "terminalConfigVersion": terminal.config_version,
             "isReliefSupply": request.is_relief_supply,
             "vat5CertificateDetails": {
-                "id": 0,
+                "id": str(uuid.uuid4()),
                 "projectNumber": "string",
                 "certificateNumber": "string",
                 "quantity": 0
