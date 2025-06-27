@@ -227,3 +227,24 @@ def test_make_a_sale_cached_blocked_terminal(client, test_db, device_headers, te
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json()["detail"] == "Terminal is blocked"
+
+
+@pytest.mark.asyncio
+@respx.mock
+def test_make_a_sale_outdated_config(client, test_db, device_headers, test_terminal, test_product,
+                                     test_global_config):
+    respx.post(f"{settings.MRA_EIS_URL}/sales/submit-sales-transaction").mock(
+        return_value=Response(200, json=get_mock_data(filename="sales_response_outdated_config.json")))
+
+    response = client.post("/api/v1/sales", headers=device_headers, json={
+        "payment_method": PaymentMethod.CARD,
+        "invoice_line_items": [
+            {
+                "product_code": test_product.code,
+                "quantity": 4,
+            }
+        ]
+    })
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json()["detail"] == "Update terminal configuration"

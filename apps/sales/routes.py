@@ -141,6 +141,9 @@ async def submit_a_transaction(
         db.commit()
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Terminal is blocked")
 
+    if response.should_download_latest_config():
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Update terminal configuration")
+
     if not response.success():
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=response.remark)
 
