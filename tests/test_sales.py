@@ -7,7 +7,7 @@ from httpx import Response, ConnectTimeout
 from starlette import status
 
 from apps.sales.schema import PaymentMethod
-from core.models import Product, OfflineTransaction, Terminal
+from core.models import Product, OfflineTransaction
 from core.settings import settings
 from core.utils import get_random_number
 
@@ -206,9 +206,12 @@ def test_make_a_sale_blocked_terminal(client, test_db, device_headers, test_term
         ]
     })
 
+    reason = "Violation of terms and conditions"
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.json()["detail"] == "Violation of terms and conditions"
-    assert test_db.query(Terminal).filter(Terminal.id == test_terminal.id).first().is_blocked
+    assert response.json()["detail"] == reason
+    test_db.refresh(test_terminal)
+    assert test_terminal.is_blocked
+    assert test_terminal.blocking_reason == reason
 
 
 @pytest.mark.asyncio
