@@ -12,6 +12,7 @@ from apps.products.schema import ProductRead
 from core.auth import get_current_user
 from core.database import get_db
 from core.models import Terminal, Product, Tenant
+from core.services.activation import write_api_log
 from core.settings import settings
 
 logger = logging.getLogger(__name__)
@@ -24,12 +25,12 @@ router = APIRouter(
 )
 
 
-async def fetch_products_from_api(tin: str, site_id: Terminal.site_id) -> list[dict]:
+async def fetch_products_from_api(db: Session, terminal: Terminal | type[Terminal]) -> list[dict]:
     """Fetch products from the external API.
 
     Args:
-        tin: Tenant Identification Number
-        site_id: Site ID to fetch products for
+        terminal: Merchant terminal
+        db: Database session
 
     Returns:
         List of product dictionaries
@@ -37,14 +38,21 @@ async def fetch_products_from_api(tin: str, site_id: Terminal.site_id) -> list[d
     Raises:
         HTTPException: If the API request fails or returns an error
     """
+    payload = {"siteId": terminal.site_id, "tin": terminal.tenant.tin}
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": terminal.token
+    }
     try:
-        async with httpx.AsyncClient(timeout=30.0) as client:
+        async with httpx.AsyncClient(timeout=30.0, verify=False) as client:
+            url = f"{settings.MRA_EIS_URL}/utilities/get-terminal-site-products"
             response = await client.post(
-                f"{settings.MRA_EIS_URL}/utilities/get-terminal-site-products",
-                json={"siteId": str(site_id), "tin": tin},
-                headers={"Content-Type": "application/json"},
+                url,
+                json=payload,
+                headers=headers,
             )
             response.raise_for_status()
+            await write_api_log(db, payload, response, url, headers)
 
             data = response.json()
             if int(data.get("statusCode", 0)) < -1:
@@ -158,8 +166,8 @@ async def get_products(
     try:
         # Fetch products from external API
         products_data = await fetch_products_from_api(
-            tin=terminal.tenant.tin,
-            site_id=terminal.site_id
+            db=db,
+            terminal=terminal
         )
 
         # Sync with database

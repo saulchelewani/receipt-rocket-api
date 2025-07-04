@@ -114,26 +114,35 @@ async def confirm_terminal_activation(terminal, db: Session) -> dict[str, Any]:
     headers = {
         "accept": "text/plain",
         "x-signature": sign_hmac_sha512(terminal.terminal_id, terminal.secret_key),
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "Authorization": terminal.token
     }
 
     payload = {
         "terminalId": terminal.terminal_id
     }
 
-    async with httpx.AsyncClient() as client:
-        url = f"{settings.MRA_EIS_URL}/onboarding/terminal-activated-confirmation"
-        response = await client.post(
-            url,
-            headers=headers,
-            json=payload)
+    try:
+        async with httpx.AsyncClient(verify=False) as client:
+            url = f"{settings.MRA_EIS_URL}/onboarding/terminal-activated-confirmation"
+            response = await client.post(
+                url,
+                headers=headers,
+                json=payload)
 
-        await write_api_log(db, payload, response, url)
+            logging.debug(response.text)
+            response.raise_for_status()
 
-        if int(response.json()["statusCode"]) < -1:
-            raise HTTPException(status_code=400, detail=response.json()["remark"])
+            await write_api_log(db, payload, response, url, headers)
 
-        return response.json()
+            if int(response.json()["statusCode"]) < -1:
+                raise HTTPException(status_code=400, detail=response.json()["remark"])
+
+            return response.json()
+
+    except Exception as e:
+        await write_api_exception_log(db, e, payload, url, headers)
+        raise HTTPException(status_code=400, detail=f"error: {str(e)}")
 
 
 async def write_api_log(db, payload, response, url, headers=None):
@@ -174,6 +183,7 @@ async def activate_terminal_with_code(db: Session, code: str, mac_address: str) 
                 timeout=settings.MRA_EIS_TIMEOUT,
                 json=payload
             )
+            response.raise_for_status()
             await write_api_log(db, payload, response, url)
 
             if int(response.json()["statusCode"]) < -1:
@@ -184,11 +194,11 @@ async def activate_terminal_with_code(db: Session, code: str, mac_address: str) 
         raise HTTPException(status_code=400, detail=f"error: {str(e)}")
 
 
-async def write_api_exception_log(db, e, payload, url):
+async def write_api_exception_log(db, e, payload, url, headers=None):
     log = ApiLog(
         method="POST",
         url=url,
-        request_headers=json.dumps({}),
+        request_headers=json.dumps(headers),
         request_body=json.dumps(payload),
         response_status=0,
         response_headers="{}",
