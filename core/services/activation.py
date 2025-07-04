@@ -1,7 +1,16 @@
-import uuid
+import json
+import logging
 from typing import Any
 
 import httpx
+
+from core import ApiLog
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
@@ -17,19 +26,43 @@ async def activate_terminal(
         db: Session,
         x_mac_address: str | None = None
 ) -> type[Terminal] | Terminal:
-    result = await activate_terminal_with_code(code, x_mac_address)
+    result = await activate_terminal_with_code(code=code, mac_address=x_mac_address, db=db)
 
     if not result:
         raise HTTPException(status_code=400, detail="Terminal activation failed")
 
     sync_global_config(db, result["data"]["configuration"]["globalConfiguration"])
     save_tax_payer_config(db, tenant, result["data"]["configuration"]["taxpayerConfiguration"])
-    return sync_terminal_config(
-        db,
-        result["data"]["configuration"]["terminalConfiguration"],
-        tenant,
-        result["data"]["activatedTerminal"]['terminalId']
+    return save_new_terminal(db, result["data"], tenant.id)
+
+
+def save_new_terminal(db: Session, config: dict[str, Any], tenant_id: Tenant.id):
+    terminal = db.query(Terminal).filter(Terminal.terminal_id == config['activatedTerminal']['terminalId']).first()
+    if terminal:
+        raise HTTPException(status_code=400, detail="Terminal exists")
+
+    terminal = Terminal(
+        tenant_id=tenant_id,
+        terminal_id=config['activatedTerminal']['terminalId'],
+        secret_key=config['activatedTerminal']['terminalCredentials']['secretKey'],
+        token=config['activatedTerminal']['terminalCredentials']['jwtToken'],
+        trading_name=config['configuration']['terminalConfiguration']['tradingName'],
+        email=config['configuration']['terminalConfiguration']['emailAddress'],
+        phone_number=config['configuration']['terminalConfiguration']['phoneNumber'],
+        label=config['configuration']['terminalConfiguration']['terminalLabel'],
+        config_version=config['configuration']['terminalConfiguration']['versionNo'],
+        address_lines=config['configuration']['terminalConfiguration']['addressLines'],
+        offline_limit_hours=config['configuration']['terminalConfiguration']['offlineLimit'][
+            'maxTransactionAgeInHours'],
+        offline_limit_amount=config['configuration']['terminalConfiguration']['offlineLimit']['maxCummulativeAmount'],
+        site_id=config['configuration']['terminalConfiguration']['terminalSite']['siteId'],
+        site_name=config['configuration']['terminalConfiguration']['terminalSite']['siteName'],
+        device_id=get_sequence_number(),
     )
+
+    db.add(terminal)
+    db.commit()
+    return terminal
 
 
 def sync_terminal_config(
@@ -48,7 +81,7 @@ def sync_terminal_config(
 
     terminal_dict = {
         'tenant_id': tenant.id,
-        'site_id': uuid.UUID(config['terminalSite']['siteId']),
+        'site_id': config['terminalSite']['siteId'],
         'trading_name': config['tradingName'],
         'email': config['emailAddress'],
         'phone_number': config['phoneNumber'],
@@ -100,12 +133,12 @@ async def confirm_terminal_activation(terminal) -> dict[str, Any]:
         return response.json()
 
 
-async def activate_terminal_with_code(code: str, mac_address: str) -> dict[str, Any]:
+async def activate_terminal_with_code(db: Session, code: str, mac_address: str) -> dict[str, Any]:
     payload = {
         "terminalActivationCode": code,
         "environment": {
             "platform": {
-                "osName": "Windows 11",
+                "osName": "Android",
                 "osVersion": "Windows 11",
                 "osBuild": "11.901.2",
                 "macAddress": mac_address
@@ -117,17 +150,42 @@ async def activate_terminal_with_code(code: str, mac_address: str) -> dict[str, 
         }
     }
     try:
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(verify=False) as client:
+            url = f"{settings.MRA_EIS_URL}/onboarding/activate-terminal"
             response = await client.post(
-                f"{settings.MRA_EIS_URL}/onboarding/activate-terminal",
+                url,
                 timeout=settings.MRA_EIS_TIMEOUT,
                 json=payload
             )
+            log = ApiLog(
+                method="POST",
+                url=url,
+                request_headers=json.dumps({}),
+                request_body=json.dumps(payload),
+                response_status=response.status_code,
+                response_headers=json.dumps(dict(response.headers)),
+                response_body=response.text
+            )
+            db.add(log)
+            db.commit()
+            logging.info(response.text)
+
             if int(response.json()["statusCode"]) < -1:
                 raise HTTPException(status_code=400, detail=response.json()["remark"])
             return response.json()
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        log = ApiLog(
+            method="POST",
+            url=url,
+            request_headers=json.dumps({}),
+            request_body=json.dumps(payload),
+            response_status=0,
+            response_headers="{}",
+            response_body=str(e),
+        )
+        db.add(log)
+        db.commit()
+        raise HTTPException(status_code=400, detail=f"error: {str(e)}")
 
 
 def sync_global_config(db: Session, config: dict[str, Any]) -> list[type[TaxRate]]:

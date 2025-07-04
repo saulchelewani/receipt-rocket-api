@@ -4,6 +4,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=BASE_DIR / ".env",
@@ -26,5 +27,7 @@ class Settings(BaseSettings):
     MRA_EIS_TIMEOUT: int = 30
     APP_NAME: str
     APP_VERSION: str
+    APP_ENVIRONMENT: str
+
 
 settings = Settings()

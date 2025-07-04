@@ -180,7 +180,7 @@ def test_terminal(test_db: Session, test_tenant: Tenant):
     if terminal: return terminal
     terminal = Terminal(terminal_id='Terminal 1', secret_key=settings.SECRET_KEY, tenant_id=test_tenant.id,
                         config_version=1,
-                        site_id=uuid.uuid4(),
+                        site_id=str(uuid.uuid4()),
                         label='Terminal 1',
                         token=get_sequence_number(),
                         device_id=get_sequence_number())

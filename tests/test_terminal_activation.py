@@ -1,11 +1,11 @@
 import json
-import uuid
 from pathlib import Path
 
 import pytest
 import respx
 from httpx import Response
 
+from core import ApiLog
 from core.models import Terminal, Tenant
 from core.settings import settings
 from core.utils import create_fake_mac_address
@@ -29,13 +29,14 @@ def test_activate_terminal_mocked(client, auth_header, test_db):
 
     assert response.status_code == 200
     assert test_db.query(Terminal).count() == 1
-    assert test_db.query(Terminal).first().site_id == uuid.UUID("f47ac10b-58cc-4372-a567-0e02b2c3d479")
+    assert test_db.query(Terminal).first().site_id == "f47ac10b-58cc-4372-a567-0e02b2c3d479"
 
     assert test_db.query(Tenant).count() == 1
     db_tenants = test_db.query(Tenant).first()
     assert db_tenants.tin == "20202020"
     assert db_tenants.vat_registered == True
     assert db_tenants.config_version == 3
+    assert test_db.query(ApiLog).count() == 1
 
 
 @pytest.mark.asyncio

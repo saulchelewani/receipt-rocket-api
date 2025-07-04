@@ -1,5 +1,4 @@
 import logging
-import uuid
 from datetime import datetime
 from typing import Annotated
 
@@ -103,7 +102,7 @@ async def sync_products_with_db(db: Session, products_data: list[dict], tenant_i
                     "productExpiryDate") else None,
                 "minimum_stock_level": product_data.get("minimumStockLevel", 0),
                 "tax_rate_id": product_data.get("taxRateId"),
-                "site_id": uuid.UUID(product_data["siteId"]) if product_data.get("siteId") else site_id,
+                "site_id": product_data["siteId"] if product_data.get("siteId") else site_id,
             }
 
             if product_dict["code"] in existing_products:

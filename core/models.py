@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Column, String, ForeignKey, UUID, Table, Float, DateTime, func, Integer, JSON, Boolean
+from sqlalchemy import Column, String, ForeignKey, UUID, Table, Float, DateTime, func, Integer, JSON, Boolean, Text
 from sqlalchemy.orm import Mapped, relationship, declared_attr
 
 from core.database import Base
@@ -133,7 +133,7 @@ class Terminal(Model):
     offline_limit_hours: Mapped[int] = Column(Integer, nullable=True)
     offline_limit_amount: Mapped[float] = Column(Float, nullable=True)
     device_id: Mapped[str] = Column(String, nullable=True)
-    site_id: Mapped[UUID] = Column(UUID(as_uuid=True), nullable=False)
+    site_id: Mapped[str] = Column(String, nullable=False)
     site_name: Mapped[str] = Column(String, nullable=True)
     is_blocked: Mapped[bool] = Column(Boolean, nullable=True)
     blocking_reason: Mapped[str | None] = Column(String, nullable=True)
@@ -177,7 +177,7 @@ class Product(Model):
     unit_price: Mapped[float] = Column(Float, nullable=False)
     quantity: Mapped[int] = Column(Integer, nullable=False)
     unit_of_measure: Mapped[str] = Column(String, nullable=False)
-    site_id: Mapped[UUID] = Column(UUID(as_uuid=True), nullable=True)
+    site_id: Mapped[str] = Column(String, nullable=True)
     expiry_date: Mapped[datetime] = Column(DateTime, nullable=True)
     minimum_stock_level: Mapped[int] = Column(Integer, nullable=True)
     tax_rate_id: Mapped[str] = Column(String, nullable=False)
@@ -200,3 +200,15 @@ class GlobalConfig(Model):
     __tablename__ = "global_config"
 
     version: Mapped[int] = Column(Integer, nullable=False)
+
+
+class ApiLog(Model):
+    __tablename__ = "api_logs"
+
+    method = Column(String(10))
+    url = Column(Text)
+    request_headers = Column(Text)
+    request_body = Column(Text)
+    response_status = Column(Integer)
+    response_headers = Column(Text)
+    response_body = Column(Text)
