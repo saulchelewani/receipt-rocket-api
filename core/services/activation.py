@@ -110,7 +110,7 @@ def sync_terminal_config(
     return db_terminal
 
 
-async def confirm_terminal_activation(terminal) -> dict[str, Any]:
+async def confirm_terminal_activation(terminal, db: Session) -> dict[str, Any]:
     headers = {
         "accept": "text/plain",
         "x-signature": sign_hmac_sha512(terminal.terminal_id, terminal.secret_key),
@@ -122,15 +122,32 @@ async def confirm_terminal_activation(terminal) -> dict[str, Any]:
     }
 
     async with httpx.AsyncClient() as client:
+        url = f"{settings.MRA_EIS_URL}/onboarding/terminal-activated-confirmation"
         response = await client.post(
-            f"{settings.MRA_EIS_URL}/onboarding/terminal-activated-confirmation",
+            url,
             headers=headers,
             json=payload)
+
+        await write_api_log(db, payload, response, url)
 
         if int(response.json()["statusCode"]) < -1:
             raise HTTPException(status_code=400, detail=response.json()["remark"])
 
         return response.json()
+
+
+async def write_api_log(db, payload, response, url, headers=None):
+    log = ApiLog(
+        method="POST",
+        url=url,
+        request_headers=json.dumps(headers),
+        request_body=json.dumps(payload),
+        response_status=response.status_code,
+        response_headers=json.dumps(dict(response.headers)),
+        response_body=response.text
+    )
+    db.add(log)
+    db.commit()
 
 
 async def activate_terminal_with_code(db: Session, code: str, mac_address: str) -> dict[str, Any]:
@@ -157,35 +174,28 @@ async def activate_terminal_with_code(db: Session, code: str, mac_address: str) 
                 timeout=settings.MRA_EIS_TIMEOUT,
                 json=payload
             )
-            log = ApiLog(
-                method="POST",
-                url=url,
-                request_headers=json.dumps({}),
-                request_body=json.dumps(payload),
-                response_status=response.status_code,
-                response_headers=json.dumps(dict(response.headers)),
-                response_body=response.text
-            )
-            db.add(log)
-            db.commit()
-            logging.info(response.text)
+            await write_api_log(db, payload, response, url)
 
             if int(response.json()["statusCode"]) < -1:
                 raise HTTPException(status_code=400, detail=response.json()["remark"])
             return response.json()
     except Exception as e:
-        log = ApiLog(
-            method="POST",
-            url=url,
-            request_headers=json.dumps({}),
-            request_body=json.dumps(payload),
-            response_status=0,
-            response_headers="{}",
-            response_body=str(e),
-        )
-        db.add(log)
-        db.commit()
+        await write_api_exception_log(db, e, payload, url)
         raise HTTPException(status_code=400, detail=f"error: {str(e)}")
+
+
+async def write_api_exception_log(db, e, payload, url):
+    log = ApiLog(
+        method="POST",
+        url=url,
+        request_headers=json.dumps({}),
+        request_body=json.dumps(payload),
+        response_status=0,
+        response_headers="{}",
+        response_body=str(e),
+    )
+    db.add(log)
+    db.commit()
 
 
 def sync_global_config(db: Session, config: dict[str, Any]) -> list[type[TaxRate]]:

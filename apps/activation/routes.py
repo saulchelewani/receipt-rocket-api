@@ -38,7 +38,7 @@ async def confirm_activation(
     if not terminal:
         raise HTTPException(status_code=400, detail="Terminal not found")
 
-    response = await confirm_terminal_activation(terminal)
+    response = await confirm_terminal_activation(terminal, db)
 
     if response["statusCode"] != 1:
         raise HTTPException(status_code=400, detail=response["remark"])

@@ -9,6 +9,7 @@ from core import ApiLog
 from core.models import Terminal, Tenant
 from core.settings import settings
 from core.utils import create_fake_mac_address
+from tests.conftest import test_db
 
 
 @pytest.mark.asyncio
@@ -69,7 +70,7 @@ def test_activate_terminal_mock_failure(client, auth_header):
 
 @pytest.mark.asyncio
 @respx.mock
-def test_confirm_activation(client, auth_header, test_terminal):
+def test_confirm_activation(client, auth_header, test_terminal, test_db):
     respx.post(f"{settings.MRA_EIS_URL}/onboarding/terminal-activated-confirmation").mock(
         return_value=Response(200, json={
             "statusCode": 1,
@@ -87,6 +88,7 @@ def test_confirm_activation(client, auth_header, test_terminal):
     )
     assert response.status_code == 200
     assert test_terminal.confirmed_at is not None
+    assert test_db.query(ApiLog).count() == 1
 
 
 @pytest.mark.asyncio
