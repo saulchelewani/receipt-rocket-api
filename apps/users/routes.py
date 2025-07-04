@@ -21,7 +21,9 @@ def create_user(user: UserCreate, db: Session = Depends(get_db), tenant: Tenant 
     if not role or role.name == "global_admin" and not admin.scope == Scope.GLOBAL:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not logged in as a global admin")
 
-    return create_db_user(user, db)
+    # FIX: Pass the tenant_id to correctly associate the new user with the creator's tenant.
+    tenant_id = tenant.id if tenant else None
+    return create_db_user(user, db, tenant_id=tenant_id)
 
 
 @router.get("/", response_model=list[UserRead])
@@ -31,7 +33,27 @@ def read_users(db: Session = Depends(get_db), tenant: Tenant = Depends(get_curre
     return db.query(User).filter(User.tenant_id == tenant.id).all()
 
 
-def create_db_user(user, db, tenant_id: UUID | None = None):
+@router.get("/{user_id}", response_model=UserRead)
+def read_user(user_id: UUID, db: Session = Depends(get_db), tenant: Tenant = Depends(get_current_tenant_or_none)):
+    """
+    Retrieves a single user by their ID.
+    - A global admin can retrieve any user.
+    - A tenant-scoped user can only retrieve users from within their own tenant.
+    """
+    query = db.query(User).filter(User.id == user_id)
+
+    if tenant:
+        query = query.filter(User.tenant_id == tenant.id)
+
+    db_user = query.first()
+
+    if not db_user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+
+    return db_user
+
+
+def create_db_user(user: UserCreate, db: Session, tenant_id: UUID | None = None):
     db_user = db.query(User).filter(User.email == user.email).first()
 
     if db_user:
@@ -47,7 +69,13 @@ def create_db_user(user, db, tenant_id: UUID | None = None):
 
 @router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_user(user_id: UUID, db: Session = Depends(get_db), tenant: Tenant = Depends(get_current_tenant_or_none)):
-    db_user = db.query(User).filter(User.id == user_id, User.tenant_id == tenant.id).first()
+    # REFACTOR: Apply same tenancy logic as read_user to allow global admins to delete users
+    # and prevent tenant-scoped users from deleting users outside their tenant.
+    query = db.query(User).filter(User.id == user_id)
+    if tenant:
+        query = query.filter(User.tenant_id == tenant.id)
+
+    db_user = query.first()
 
     if not db_user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")

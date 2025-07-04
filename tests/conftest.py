@@ -108,6 +108,14 @@ def device_headers(test_user, test_terminal):
 
 
 @pytest.fixture()
+def tenant_user_headers(test_user, test_terminal):
+    token = create_access_token(data={"sub": test_user.email}, expires_delta=timedelta(minutes=15))
+    return {
+        "Authorization": f"Bearer {token}",
+        "x-device-id": test_terminal.device_id
+    }
+
+@pytest.fixture()
 def auth_header_tenant_admin(test_tenant_admin, test_tenant: Tenant):
     token = create_access_token(data={"sub": test_tenant_admin.email},
                                 expires_delta=timedelta(minutes=15))

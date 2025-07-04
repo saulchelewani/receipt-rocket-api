@@ -3,7 +3,7 @@ import uuid
 import pytest
 from sqlalchemy.orm import Session
 
-from core.models import Role, Tenant, User
+from core.models import Role, Tenant
 from tests.conftest import client
 
 
@@ -100,3 +100,40 @@ def test_delete_user(client, auth_header_admin, test_tenant, test_db, test_role)
 def test_delete_user_not_found(client, auth_header_admin):
     response = client.delete(f"/api/v1/users/{uuid.uuid4()}", headers=auth_header_admin)
     assert response.status_code == 404
+
+
+# tests/users/test_routes.py
+
+from uuid import uuid4
+
+from fastapi.testclient import TestClient
+from starlette import status
+
+from core.models import User
+
+
+def test_read_user_by_id_as_tenant_user(
+        client: TestClient, test_user: User, test_tenant: Tenant, auth_header_tenant_admin: dict[str, str]
+):
+    """
+    Tests that a tenant user can fetch another user from the same tenant.
+    """
+    response = client.get(f"/api/v1/users/{test_user.id}", headers=auth_header_tenant_admin)
+
+    assert response.status_code == status.HTTP_200_OK
+    data = response.json()
+    assert data["id"] == str(test_user.id)
+    assert data["email"] == test_user.email
+
+
+def test_read_user_by_id_not_found(
+        client: TestClient, auth_header_tenant_admin: dict
+):
+    """
+    Tests that a 404 is returned for a non-existent user ID.
+    """
+    non_existent_id = uuid4()
+    response = client.get(f"/api/vi/users/{non_existent_id}", headers=auth_header_tenant_admin)
+
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+    assert response.json()["detail"] == "Not Found"
