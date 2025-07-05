@@ -55,7 +55,6 @@ class User(Model):
     role: Mapped["Role"] = relationship("Role", back_populates="users")
     tenant: Mapped["Tenant"] = relationship("Tenant", back_populates="users")
 
-
 class Role(Model):
     __tablename__ = "roles"
 

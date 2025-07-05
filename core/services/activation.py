@@ -130,7 +130,7 @@ async def confirm_terminal_activation(terminal, db: Session) -> dict[str, Any]:
                 headers=headers,
                 json=payload)
 
-            logging.debug(response.text)
+            # logging.debug(response.text)
             response.raise_for_status()
 
             await write_api_log(db, payload, response, url, headers)

@@ -5,6 +5,10 @@ import secrets
 import string
 from datetime import datetime
 
+from passlib.context import CryptContext
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
 import rstr
 
 
@@ -111,3 +115,38 @@ def generate_invoice_number(
         transaction_count: int
 ) -> str:
     return generate_combined_string(taxpayer_id, position, to_julian_date(transaction_date), transaction_count)
+
+
+def generate_password(length=12) -> str:
+    if length < 6:
+        raise ValueError("Password length should be at least 6 characters")
+
+    characters = (
+            string.ascii_letters +  # a-zA-Z
+            string.digits +  # 0-9
+            string.punctuation  # !@#$%^&*()_+-=[]{} etc.
+    )
+
+    # Ensure at least one character from each category
+    password = [
+        secrets.choice(string.ascii_lowercase),
+        secrets.choice(string.ascii_uppercase),
+        secrets.choice(string.digits),
+        secrets.choice(string.punctuation)
+    ]
+
+    # Fill the rest of the password length with random choices
+    password += [secrets.choice(characters) for _ in range(length - 4)]
+
+    # Shuffle to avoid predictable order
+    secrets.SystemRandom().shuffle(password)
+
+    return ''.join(password)
+
+
+def hash_password(plain_password: str) -> str:
+    return pwd_context.hash(plain_password)
+
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    return pwd_context.verify(plain_password, hashed_password)
