@@ -4,6 +4,8 @@ from unittest.mock import patch
 
 import httpx
 import pytest
+import rstr
+from starlette import status
 
 from apps.main import app
 from core import User
@@ -25,17 +27,20 @@ async def test_create_tenant(auth_header_global_admin, test_db) -> None:
                 "/api/v1/tenants/",
                 headers=auth_header_global_admin,
                 json={
-                    "name": "New Tenant",
+                    "name": "FMC Inc",
                     "email": "test@example.com",
-                    "admin_name": "Admin User",
-                    "phone_number": "0886265490"
+                    "admin_name": "Chimwewemwe Kampingo",
+                    "phone_number": rstr.xeger(r'^(\+?265|0)[89]{2}[0-9]{7}$'),
                 })
-        assert response.status_code == 200
-        assert response.json()["id"]
-        assert re.match(r"^NT\d{4}$", response.json()["code"])
+            data = response.json()
+
+        assert response.status_code == status.HTTP_200_OK
+        assert all(key in data for key in ["id", "code", "name"])
+        assert re.match(r"^FI[0-9]{4}$", data.get("code"))
         user = test_db.query(User).filter(
             User.email == "test@example.com",
-            User.tenant_id == uuid.UUID(response.json()["id"])
+            User.name == "Chimwewemwe Kampingo",
+            User.tenant_id == uuid.UUID(data.get("id"))
         ).first()
         assert user is not None
         mock_send_email.assert_called_once()
