@@ -51,9 +51,13 @@ class User(Model):
     tenant_id: Mapped[UUID] = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=True)
     role_id: Mapped[UUID] = Column(UUID(as_uuid=True), ForeignKey("roles.id"))
     scope: Mapped[str] = Column(String, nullable=True)
+    status: Mapped[int] = Column(Integer, nullable=True, default=1001)
+    last_login: Mapped[DateTime] = Column(DateTime, nullable=True)
+    last_logout: Mapped[DateTime] = Column(DateTime, nullable=True)
 
     role: Mapped["Role"] = relationship("Role", back_populates="users")
     tenant: Mapped["Tenant"] = relationship("Tenant", back_populates="users")
+
 
 class Role(Model):
     __tablename__ = "roles"
@@ -211,3 +215,10 @@ class ApiLog(Model):
     response_status = Column(Integer)
     response_headers = Column(Text)
     response_body = Column(Text)
+
+
+class Dictionary(Model):
+    __tablename__ = "dictionaries"
+
+    term: Mapped[int] = Column(Integer, nullable=False, index=True)
+    definition: Mapped[str] = Column(String, nullable=False)

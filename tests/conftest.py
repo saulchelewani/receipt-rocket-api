@@ -14,7 +14,7 @@ from core.auth import create_access_token
 from core.database import Base, get_db
 from core.enums import RoleEnum, Scope
 from core.models import Tenant, Role, User, Terminal, Profile, role_route_association, Route, Product, Item, TaxRate, \
-    GlobalConfig, OfflineTransaction
+    GlobalConfig, OfflineTransaction, Dictionary
 from core.settings import settings
 from core.utils.helpers import get_sequence_number, get_random_number
 
@@ -392,6 +392,17 @@ def test_offline_transaction(test_db: Session, test_tenant, test_terminal):
     test_db.commit()
     test_db.refresh(offline_transaction)
     return offline_transaction
+
+
+@pytest.fixture
+def test_dictionary(test_db: Session):
+    dictionary = test_db.query(Dictionary).first()
+    if dictionary: return dictionary
+    dictionary = Dictionary(term=1001, definition="Active")
+    test_db.add(dictionary)
+    test_db.commit()
+    test_db.refresh(dictionary)
+    return dictionary
 #
 # def create_route(test_db: Session) -> Route:
 #     route = Route(path='/', method='GET', action='GET:/', name="Get user list")

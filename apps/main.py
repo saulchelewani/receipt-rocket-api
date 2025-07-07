@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from apps.activation.routes import router as activation_router
 from apps.auth.routes import router as auth_router
 from apps.config.routes import router as config_router
+from apps.dictionary.routes import router as dictionary_router
 from apps.products.routes import router as products_router
 from apps.profiles.routes import router as profiles_router
 from apps.roles.routes import router as roles_router
@@ -38,6 +39,7 @@ app.include_router(sales_router, prefix=settings.API_V1_STR)
 app.include_router(routes_router, prefix=settings.API_V1_STR)
 
 app.include_router(users_router, prefix=settings.API_V1_STR)
+app.include_router(dictionary_router, prefix=settings.API_V1_STR)
 
 
 if __name__ == "__main__":

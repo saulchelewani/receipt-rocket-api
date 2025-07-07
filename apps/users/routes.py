@@ -5,7 +5,7 @@ from fastapi.params import Depends
 from sqlalchemy.orm import Session
 from starlette import status
 
-from apps.users.schema import UserRead, UserCreate
+from apps.users.schema import UserRead, UserCreate, AdminCreate
 from core.auth import get_current_user, has_permission, get_current_tenant_or_none
 from core.database import get_db
 from core.enums import Scope
@@ -53,7 +53,7 @@ def read_user(user_id: UUID, db: Session = Depends(get_db), tenant: Tenant = Dep
     return db_user
 
 
-def create_db_user(user: UserCreate, db: Session, tenant_id: UUID | None = None):
+def create_db_user(user: UserCreate | AdminCreate, db: Session, tenant_id: UUID | None = None):
     db_user = db.query(User).filter(User.email == user.email).first()
 
     if db_user:

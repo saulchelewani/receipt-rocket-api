@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 from core.auth import create_access_token, verify_password
 from core.database import get_db
 from core.enums import Scope
-from core.models import User
+from core.models import User, Dictionary
 from core.settings import settings
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
@@ -29,6 +29,10 @@ async def login(request: Request, db: Session = Depends(get_db), form_data: OAut
     user = db.query(User).filter(User.email == form_data.username).first()
     if not user or not verify_password(form_data.password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid credentials")
+
+    if user.status != 1001:
+        status = db.query(Dictionary).filter(Dictionary.term == user.status).first()
+        raise HTTPException(status_code=401, detail=f"Login failed: {status.definition}")
 
     token_data = {
         "sub": user.email,
