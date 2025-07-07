@@ -8,5 +8,3 @@ def test_list_dictionary(client, test_dictionary):
     expected_keys = ["term", "definition"]
     for item in data:
         assert all(key in item for key in expected_keys)
-
-    print(data)
