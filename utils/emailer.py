@@ -1,6 +1,5 @@
 import os
 from email.message import EmailMessage
-from typing import List
 
 import aiosmtplib
 import jinja2
@@ -25,7 +24,7 @@ async def send_email(
         subject: str,
         template_name: str,
         context: dict,
-        attachments: List[dict] | None = None
+        attachments: list[dict] | None = None
 ) -> None:
     """
     Send an email using the configured SMTP server.
