@@ -1,7 +1,8 @@
 from uuid import UUID
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, BackgroundTasks
 from fastapi.params import Depends
+from pygments.styles.dracula import background
 from sqlalchemy.orm import Session
 from starlette import status
 
@@ -10,6 +11,8 @@ from core.auth import get_current_user, has_permission, get_current_tenant_or_no
 from core.database import get_db
 from core.enums import Scope
 from core.models import Tenant, User, Role
+from core.utils.emailer import send_email
+from core.utils.helpers import generate_password, hash_password
 
 router = APIRouter(prefix="/users", tags=["Users"], dependencies=[Depends(get_current_user), Depends(has_permission)])
 
@@ -59,11 +62,26 @@ def create_db_user(user: UserCreate | AdminCreate, db: Session, tenant_id: UUID 
     if db_user:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
 
-    db_user = User(email=str(user.email), role_id=user.role_id, tenant_id=tenant_id, name=user.name,
-                   phone_number=user.phone_number, )
+    password = generate_password()
+
+    db_user = User(
+        email=str(user.email),
+        role_id=user.role_id,
+        tenant_id=tenant_id,
+        name=user.name,
+        status=1002,
+        phone_number=user.phone_number,
+        hashed_password=hash_password(password),
+    )
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
+    background_tasks = BackgroundTasks()
+    background_tasks.add_task(send_email, db_user.email, "New account created", "welcome_email.html", {
+        "name": db_user.name,
+        "username": db_user.email,
+        "password": password
+    })
     return db_user
 
 
