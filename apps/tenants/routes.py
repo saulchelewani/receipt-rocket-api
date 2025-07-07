@@ -54,7 +54,11 @@ async def create_tenant(tenant: TenantCreate, background_tasks: BackgroundTasks,
         hashed_password=hash_password(password),
     )
 
-    background_tasks.add_task(send_email, admin.email, "New account created", f"Your password is: {password}")
+    background_tasks.add_task(send_email, admin.email, "New account created", "welcome_email.html", {
+        "name": admin.name,
+        "username": admin.email,
+        "password": password
+    })
 
     db.add(admin)
     db.commit()
