@@ -1,6 +1,8 @@
 import re
 import uuid
 
+import pytest
+
 from core import User
 
 
@@ -10,7 +12,15 @@ def test_list_tenants(client, test_tenant, auth_header_global_admin):
     assert response.json()[0]["id"] == str(test_tenant.id)
 
 
-def test_create_tenant(client, auth_header_global_admin, test_db) -> None:
+@pytest.mark.asyncio
+async def test_create_tenant(client, auth_header_global_admin, test_db, monkeypatch) -> None:
+    sent_emails = []
+
+    async def mock_send_email(*args, **kwargs):
+        sent_emails.append(args)
+
+    monkeypatch.setattr("utils.emailer.send_email", mock_send_email)
+
     response = client.post("/api/v1/tenants", headers=auth_header_global_admin,
                            json={"name": "New Tenant", "email": "test@example.com", "admin_name": "Admin User",
                                  "phone_number": "0886265490"})
@@ -21,9 +31,9 @@ def test_create_tenant(client, auth_header_global_admin, test_db) -> None:
         User.email == "test@example.com",
         User.tenant_id == uuid.UUID(response.json()["id"])
     ).first()
-    print(user.__dict__)
+    assert sent_emails == [("test@example.com", "New Tenant", "Admin User", "0886265490")]
     assert user is not None
-
+    print(sent_emails)
 
 
 def test_cannot_create_duplicate_tenant(client, auth_header_global_admin, test_tenant) -> None:

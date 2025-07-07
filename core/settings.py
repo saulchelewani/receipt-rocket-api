@@ -29,5 +29,12 @@ class Settings(BaseSettings):
     APP_VERSION: str
     APP_ENVIRONMENT: str
 
+    SMTP_HOST: str
+    SMTP_PORT: int
+    SMTP_USERNAME: str
+    SMTP_PASSWORD: str
+    SMTP_FROM: str
+    SMTP_USE_TLS: bool
+
 
 settings = Settings()

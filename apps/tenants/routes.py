@@ -3,7 +3,7 @@ import string
 from typing import Set
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from passlib.utils import generate_password
 from sqlalchemy.orm import Session
 from starlette import status
@@ -15,6 +15,7 @@ from core.auth import is_global_admin
 from core.database import get_db
 from core.models import Tenant, User, Role
 from core.utils import hash_password
+from utils.emailer import send_email
 
 router = APIRouter(
     prefix="/tenants",
@@ -30,7 +31,7 @@ async def list_tenants(db: Session = Depends(get_db)):
 
 
 @router.post("/", response_model=TenantRead, dependencies=[Depends(is_global_admin)])
-async def create_tenant(tenant: TenantCreate, db: Session = Depends(get_db)):
+async def create_tenant(tenant: TenantCreate, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     db_tenant = db.query(Tenant).filter(Tenant.name == tenant.name).first()
 
     if db_tenant:
@@ -52,6 +53,9 @@ async def create_tenant(tenant: TenantCreate, db: Session = Depends(get_db)):
         role_id=get_admin_role(db).id,
         hashed_password=hash_password(password),
     )
+
+    background_tasks.add_task(send_email, admin.email, "New account created", f"Your password is: {password}")
+
     db.add(admin)
     db.commit()
     db.refresh(db_tenant)

@@ -20,7 +20,6 @@ def test_get_products(client, device_headers, test_db):
 
     response = client.get("/api/v1/products", headers=device_headers)
 
-    print(response.text)
     assert response.status_code == 200
     assert test_db.query(Product).count() == 1
 
