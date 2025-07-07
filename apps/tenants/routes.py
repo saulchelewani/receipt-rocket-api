@@ -14,8 +14,8 @@ from apps.users.schema import UserRead, AdminCreate
 from core.auth import is_global_admin
 from core.database import get_db
 from core.models import Tenant, User, Role
-from core.utils import hash_password
-from utils.emailer import send_email
+from core.utils.emailer import send_email
+from core.utils.helpers import hash_password
 
 router = APIRouter(
     prefix="/tenants",

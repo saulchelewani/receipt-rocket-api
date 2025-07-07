@@ -3,7 +3,7 @@ from uuid import UUID
 from pydantic import BaseModel, EmailStr, constr
 
 from apps.roles.schema import RoleRead
-from core.utils import phone_number_regex
+from core.utils.helpers import phone_number_regex
 
 
 class UserBase(BaseModel):

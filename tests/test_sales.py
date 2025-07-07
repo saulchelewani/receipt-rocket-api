@@ -6,7 +6,7 @@ from starlette import status
 from apps.sales.schema import PaymentMethod
 from core.models import Product, OfflineTransaction
 from core.settings import settings
-from core.utils import get_random_number
+from core.utils.helpers import get_random_number
 from tests.conftest import get_mock_data
 
 

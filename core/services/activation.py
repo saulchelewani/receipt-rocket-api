@@ -5,6 +5,7 @@ from typing import Any
 import httpx
 
 from core import ApiLog
+from core.utils.helpers import get_sequence_number, sign_hmac_sha512
 
 logging.basicConfig(
     level=logging.INFO,
@@ -17,7 +18,6 @@ from sqlalchemy.orm import Session
 from core.models import Terminal, TaxRate, Tenant, GlobalConfig
 from core.services.config import save_tax_payer_config
 from core.settings import settings
-from core.utils import sign_hmac_sha512, get_sequence_number
 
 
 async def activate_terminal(

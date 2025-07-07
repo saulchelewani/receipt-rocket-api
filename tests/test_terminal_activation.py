@@ -8,7 +8,7 @@ from httpx import Response
 from core import ApiLog
 from core.models import Terminal, Tenant
 from core.settings import settings
-from core.utils import create_fake_mac_address
+from core.utils.helpers import create_fake_mac_address
 from tests.conftest import test_db
 
 

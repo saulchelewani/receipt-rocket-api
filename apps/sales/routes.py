@@ -13,7 +13,7 @@ from core.database import get_db
 from core.models import Terminal, GlobalConfig, Product, TaxRate
 from core.services.blocking import get_blocking_message
 from core.services.sales import submit_transaction, run_submission_job
-from core.utils import generate_invoice_number, calculate_tax
+from core.utils.helpers import calculate_tax, generate_invoice_number
 
 router = APIRouter(
     prefix="/sales",

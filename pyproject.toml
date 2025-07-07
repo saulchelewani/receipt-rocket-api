@@ -1,3 +1,7 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "receipt-rocket-api"
 version = "0.1.0"
@@ -17,15 +21,17 @@ dependencies = [
     "sqlalchemy-utils",
     "pydantic-settings",
     "python-multipart",
-    "passlib[bcrypt]>=1.7.4",
-    "bcrypt>=3.1.7",
+    "passlib[bcrypt]>=1.7.4,<2.0.0",
+    "bcrypt>=4.0.0",
     "python-jose",
     "httpx>=0.23.0,<0.24.0",
     "rstr",
     "respx",
     "slowapi",
     "pydantic[email]",
-    "aiosmtplib"
+    "aiosmtplib",
+    "jinja2",
+    "aiosmtpd"
 ]
 
 [project.optional-dependencies]
@@ -35,3 +41,14 @@ dev = [
     "isort",
     "mypy"
 ]
+
+[tool.setuptools]
+packages = ["core", "apps", "alembic"]
+package-dir = { "" = "." }
+include-package-data = true
+
+[tool.setuptools.package-data]
+"*" = ["*.json", "*.txt", "*.html", "*.sql", "*.ini"]
+"core" = ["*.json", "*.txt", "*.html", "*.sql", "*.ini"]
+"apps" = ["*.json", "*.txt", "*.html", "*.sql", "*.ini"]
+"alembic" = ["*.ini", "*.mako", "*.py"]

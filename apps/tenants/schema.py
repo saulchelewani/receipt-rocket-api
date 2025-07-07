@@ -2,7 +2,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, EmailStr, constr
 
-from core.utils import phone_number_regex
+from core.utils.helpers import phone_number_regex
 
 
 class TenantBase(BaseModel):

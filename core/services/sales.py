@@ -7,7 +7,7 @@ from core.database import SessionLocal
 from core.models import OfflineTransaction
 from core.services.responses.sales_response import SalesResponse
 from core.settings import settings
-from core.utils import sign_hmac_sha512
+from core.utils.helpers import sign_hmac_sha512
 
 
 async def submit_transaction(transaction, terminal, db) -> SalesResponse:

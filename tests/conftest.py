@@ -16,7 +16,7 @@ from core.enums import RoleEnum, Scope
 from core.models import Tenant, Role, User, Terminal, Profile, role_route_association, Route, Product, Item, TaxRate, \
     GlobalConfig, OfflineTransaction
 from core.settings import settings
-from core.utils import get_sequence_number, get_random_number
+from core.utils.helpers import get_sequence_number, get_random_number
 
 # Use an in-memory SQLite database for testing
 engine_test = create_engine(
