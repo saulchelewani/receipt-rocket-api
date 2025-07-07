@@ -1,3 +1,4 @@
+import uuid
 from datetime import timedelta, datetime
 from uuid import UUID
 
@@ -42,11 +43,27 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
     return user
 
 
-def create_access_token(data: dict, expires_delta: timedelta | None = None):
+def create_access_token(data: dict, expires_delta: timedelta = timedelta(minutes=15)):
     to_encode = data.copy()
-    expire = datetime.now() + (expires_delta or timedelta(minutes=15))
-    to_encode["exp"] = expire
+    expire = datetime.now() + expires_delta
+    to_encode.update({
+        "exp": expire,
+        "iat": datetime.now()
+    })
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+
+def create_refresh_token(user_id, token_version: int = 1, expires_delta: timedelta = timedelta(days=30)):
+    to_encode = {
+        "sub": str(user_id),
+        "ver": token_version,
+        "exp": datetime.now() + expires_delta,
+        "iat": datetime.now(),
+        "jti": str(uuid.uuid4())
+    }
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+
 
 
 async def get_current_tenant_or_none(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):

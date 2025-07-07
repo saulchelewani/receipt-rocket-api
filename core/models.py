@@ -54,6 +54,7 @@ class User(Model):
     status: Mapped[int] = Column(Integer, nullable=True, default=1001)
     last_login: Mapped[DateTime] = Column(DateTime, nullable=True)
     last_logout: Mapped[DateTime] = Column(DateTime, nullable=True)
+    refresh_token_version = Column(Integer, default=0)
 
     role: Mapped["Role"] = relationship("Role", back_populates="users")
     tenant: Mapped["Tenant"] = relationship("Tenant", back_populates="users")
