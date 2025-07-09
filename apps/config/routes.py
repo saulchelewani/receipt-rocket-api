@@ -32,7 +32,7 @@ async def get_config(
     if not terminal:
         raise HTTPException(status_code=400, detail="Terminal not found")
 
-    config = await get_configuration()
+    config = await get_configuration(terminal, db)
 
     tax_rates = sync_global_config(db, config["data"]["globalConfiguration"])
     profile = save_tax_payer_config(db, tenant, config["data"]["taxpayerConfiguration"])

@@ -55,37 +55,6 @@ def test_db():
         Base.metadata.drop_all(bind=engine_test)
 
 
-#
-# @pytest.fixture
-# def auth_header(client, test_db, test_user):
-#     token = create_access_token(data={"sub": test_user.email, "tenant_id": str(test_user.tenant_id)},
-#                                 expires_delta=timedelta(minutes=15))
-#     return {"Authorization": f"Bearer {token}"}
-#
-#
-#
-# @pytest.fixture
-# def test_user(client, test_db: Session, test_tenant):
-#     role = create_role(test_db, "user")
-#     user = create_user(test_db, "test@example.io", get_config("TEST_HASH"), role.id, False, test_tenant.id)
-#     return user
-#
-#
-# @pytest.fixture
-# def test_user_with_routes(client, test_db: Session):
-#     tenant = create_tenant(test_db)
-#     role = create_role(test_db, "user")
-#     route = create_route(test_db)
-#     user = create_user(test_db, "test@example.io", get_config("TEST_HASH"), role.id, False, tenant.id)
-#     stmt = insert(role_route_association).values(
-#         role_id=user.role_id,
-#         route_id=route.id
-#     )
-#     test_db.execute(stmt)
-#     test_db.commit()
-#     return user
-#
-#
 @pytest.fixture
 def auth_header_global_admin(test_global_admin):
     token = create_access_token(data={"sub": test_global_admin.email}, expires_delta=timedelta(minutes=15))
@@ -249,27 +218,18 @@ def test_global_config(test_db: Session):
     return config
 
 
-#
-# @pytest.fixture
-# def auth_header_non_admin(test_non_admin_user):
-#     token = create_access_token(data={"sub": test_non_admin_user.email}, expires_delta=timedelta(minutes=15))
-#     return {"Authorization": f"Bearer {token}"}
-#
-#
-# @pytest.fixture
-# def auth_header_admin(test_admin_user, test_tenant: Tenant):
-#     token = create_access_token(data={"sub": test_admin_user.email, "tenant_id": str(test_tenant.id)},
-#                                 expires_delta=timedelta(minutes=15))
-#     return {"Authorization": f"Bearer {token}"}
-#
-#
 @pytest.fixture
 def test_tenant(test_db: Session):
     tenant = test_db.query(Tenant).first()
     if tenant: return tenant
-    tenant = Tenant(name="test", code="test", email="test@example.com", phone_number="0886265490",
-                    tin=get_random_number(9),
-                    config_version=1)
+    tenant = Tenant(
+        name="test",
+        code="test",
+        email="test@example.com",
+        phone_number="0886265490",
+        tin=31699145,
+        config_version=1
+    )
     test_db.add(tenant)
     test_db.commit()
     test_db.refresh(tenant)

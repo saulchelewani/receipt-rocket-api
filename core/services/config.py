@@ -1,3 +1,4 @@
+import logging
 from typing import Any
 
 import httpx
@@ -6,21 +7,32 @@ from sqlalchemy.orm import Session
 
 from core.models import Tenant
 from core.settings import settings
+from core.utils.api_logger import write_api_log, write_api_exception_log
+
+logger = logging.getLogger(__name__)
 
 
-async def get_configuration():
+async def get_configuration(terminal, db: Session):
     headers = {
         "accept": "application/json",
+        "Authorization": f"Bearer {terminal.token}",
     }
     try:
         async with httpx.AsyncClient() as client:
-            response = await client.get(
-                f"{settings.MRA_EIS_URL}/api/v1/configuration/get-latest-configs",
+            url = f"{settings.MRA_EIS_URL}/configuration/get-latest-configs"
+            response = await client.post(
+                url,
                 timeout=settings.MRA_EIS_TIMEOUT,
-                headers=headers)
-
+                headers=headers
+            )
+            await write_api_log(db, dict(), response, url, headers)
+            response.raise_for_status()
+            # logger.info(response.json())
+            # logger.info(response.text)
         return response.json()
     except Exception as e:
+        logger.error(f"Error getting configuration: {str(e)}")
+        await write_api_exception_log(db, e, dict(), url, headers)
         raise HTTPException(status_code=400, detail=str(e))
 
 

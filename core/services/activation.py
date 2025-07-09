@@ -1,10 +1,9 @@
-import json
 import logging
 from typing import Any
 
 import httpx
 
-from core import ApiLog
+from core.utils.api_logger import write_api_log, write_api_exception_log
 from core.utils.helpers import get_sequence_number, sign_hmac_sha512
 
 logging.basicConfig(
@@ -149,20 +148,6 @@ async def confirm_terminal_activation(terminal, db: Session) -> dict[str, Any]:
         raise HTTPException(status_code=400, detail=f"error: {str(e)}")
 
 
-async def write_api_log(db, payload, response, url, headers=None):
-    log = ApiLog(
-        method="POST",
-        url=url,
-        request_headers=json.dumps(headers),
-        request_body=json.dumps(payload),
-        response_status=response.status_code,
-        response_headers=json.dumps(dict(response.headers)),
-        response_body=response.text
-    )
-    db.add(log)
-    db.commit()
-
-
 async def activate_terminal_with_code(db: Session, code: str, mac_address: str) -> dict[str, Any]:
     payload = {
         "terminalActivationCode": code,
@@ -196,20 +181,6 @@ async def activate_terminal_with_code(db: Session, code: str, mac_address: str) 
     except Exception as e:
         await write_api_exception_log(db, e, payload, url)
         raise HTTPException(status_code=400, detail=f"error: {str(e)}")
-
-
-async def write_api_exception_log(db, e, payload, url, headers=None):
-    log = ApiLog(
-        method="POST",
-        url=url,
-        request_headers=json.dumps(headers),
-        request_body=json.dumps(payload),
-        response_status=0,
-        response_headers="{}",
-        response_body=str(e),
-    )
-    db.add(log)
-    db.commit()
 
 
 def sync_global_config(db: Session, config: dict[str, Any]) -> list[type[TaxRate]]:

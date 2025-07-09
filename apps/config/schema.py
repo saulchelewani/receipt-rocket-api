@@ -1,3 +1,4 @@
+from datetime import datetime
 from uuid import UUID
 
 from pydantic import BaseModel
@@ -25,11 +26,12 @@ class TaxPayerRead(BaseModel):
 
 class TerminalRead(BaseModel):
     terminal_id: str
-    confirmed_at: str | None = None
+    confirmed_at: datetime | None = None
     trading_name: str
     email: str
     phone_number: str
     label: str
+    device_id: str | None = None
     config_version: int
     address_lines: list[str]
 

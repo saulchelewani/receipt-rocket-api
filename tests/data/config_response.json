@@ -1,65 +1,68 @@
 {
-  "statusCode": 0,
-  "remark": "string",
+  "statusCode": 1,
+  "remark": "Retrieved latest configurations",
   "data": {
     "globalConfiguration": {
       "id": 0,
-      "versionNo": 0,
+      "versionNo": 1,
       "taxrates": [
         {
-          "id": "string",
-          "name": "string",
-          "chargeMode": "string",
-          "ordinal": 0,
-          "rate": 0
+          "id": "A",
+          "name": "Standard Rated",
+          "chargeMode": "Item",
+          "ordinal": 100,
+          "rate": 16.500
+        },
+        {
+          "id": "B",
+          "name": "Zero Rated",
+          "chargeMode": "Item",
+          "ordinal": 100,
+          "rate": 0.000
+        },
+        {
+          "id": "E",
+          "name": "Exempt",
+          "chargeMode": "Item",
+          "ordinal": 100,
+          "rate": 0.000
         }
       ]
     },
     "terminalConfiguration": {
-      "versionNo": 0,
-      "terminalLabel": "Terminal 1",
-      "isActiveTerminal": true,
-      "emailAddress": "string",
-      "phoneNumber": "+265888123456",
-      "tradingName": "string",
+      "versionNo": 1,
+      "terminalLabel": "Till 6",
+      "isActiveTerminal": false,
+      "emailAddress": "denis.disi@gmail.com",
+      "phoneNumber": "0888465650",
+      "tradingName": "Nachiwale Investments",
       "addressLines": [
-        "string"
+        "Fargo"
       ],
       "terminalSite": {
-        "siteId": "b5f5343f-3ccb-4495-807a-c827b7ed8073",
-        "siteName": "string"
+        "siteId": "BL44c73cd2-bff0-4d54-9437-ff4e3fdd294a",
+        "siteName": "Fargo"
       },
       "offlineLimit": {
-        "maxTransactionAgeInHours": 0,
-        "maxCummulativeAmount": 0
+        "maxTransactionAgeInHours": 72,
+        "maxCummulativeAmount": 3000000
       }
     },
     "taxpayerConfiguration": {
-      "versionNo": 0,
-      "tin": "20202020",
-      "isVATRegistered": true,
-      "taxOfficeCode": "string",
+      "versionNo": 1,
+      "tin": "31699145",
+      "isVATRegistered": false,
+      "taxOfficeCode": null,
       "taxOffice": {
-        "code": "string",
-        "name": "string"
+        "code": "BSTO",
+        "name": "Blantyre STO"
       },
       "activatedTaxRateIds": [
-        "string"
+        "CGT",
+        "NRT"
       ],
-      "activatedTaxrates": [
-        {
-          "id": 0,
-          "taxpayerConfigurationId": 0,
-          "taxRateId": "string"
-        }
-      ]
+      "activatedTaxrates": null
     }
   },
-  "errors": [
-    {
-      "errorCode": 0,
-      "fieldName": "string",
-      "errorMessage": "string"
-    }
-  ]
+  "errors": []
 }
