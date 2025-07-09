@@ -27,8 +27,6 @@ async def get_configuration(terminal, db: Session):
             )
             await write_api_log(db, dict(), response, url, headers)
             response.raise_for_status()
-            # logger.info(response.json())
-            # logger.info(response.text)
         return response.json()
     except Exception as e:
         logger.error(f"Error getting configuration: {str(e)}")

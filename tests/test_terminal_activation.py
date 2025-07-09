@@ -43,10 +43,10 @@ def test_activate_terminal_mocked(client, auth_header, test_db):
     terminal = test_db.query(Terminal).filter(
         Terminal.activation_code == "MOCK-CODE-1234-36ES",
         Terminal.id == uuid.UUID(response.json()["id"]),
-        Terminal.site_id == "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+        Terminal.site_id == "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+        Terminal.position == 1
     ).first()
     assert terminal is not None
-
 
 
 @pytest.mark.asyncio

@@ -7,23 +7,29 @@ from core.database import SessionLocal
 from core.models import OfflineTransaction
 from core.services.responses.sales_response import SalesResponse
 from core.settings import settings
+from core.utils.api_logger import write_api_log, write_api_exception_log
 from core.utils.helpers import sign_hmac_sha512
 
 
 async def submit_transaction(transaction, terminal, db) -> SalesResponse:
+    headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "Authorization": f"Bearer {terminal.token}"
+    }
+    url = f"{settings.MRA_EIS_URL}/sales/submit-sales-transaction"
     try:
         async with httpx.AsyncClient(timeout=settings.MRA_EIS_TIMEOUT) as client:
             response = await client.post(
-                f"{settings.MRA_EIS_URL}/sales/submit-sales-transaction",
+                url,
                 json=transaction,
-                headers={
-                    "Content-Type": "application/json",
-                    "Accept": "application/json",
-                    "Authorization": terminal.token
-                }
+                headers=headers
             )
+            await write_api_log(db, transaction, response, url, headers)
+            response.raise_for_status()
             return SalesResponse(response.json())
     except httpx.TimeoutException:
+        await write_api_exception_log(db, "Request timed out", transaction, url, headers)
         txn_details = sign_offline_transaction(transaction, terminal)
         record = OfflineTransaction(
             terminal_id=terminal.id,

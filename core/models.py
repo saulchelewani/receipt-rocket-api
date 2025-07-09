@@ -95,6 +95,7 @@ class Tenant(Model):
     )
     subscriptions: Mapped[list["Subscription"]] = relationship("Subscription", back_populates="tenant")
 
+
 class Route(Model):
     __tablename__ = "routes"
 
@@ -126,6 +127,7 @@ class Terminal(Model):
     __tablename__ = "terminals"
 
     terminal_id: Mapped[str] = Column(String)
+    position: Mapped[int] = Column(Integer, nullable=True)
     secret_key: Mapped[str] = Column(String)
     token: Mapped[str] = Column(String, nullable=True)
     tenant_id: Mapped[UUID] = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)

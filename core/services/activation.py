@@ -48,6 +48,7 @@ def save_new_terminal(
     terminal = Terminal(
         tenant_id=tenant_id,
         terminal_id=config['activatedTerminal']['terminalId'],
+        position=config['activatedTerminal']['terminalPosition'],
         secret_key=config['activatedTerminal']['terminalCredentials']['secretKey'],
         token=config['activatedTerminal']['terminalCredentials']['jwtToken'],
         trading_name=config['configuration']['terminalConfiguration']['tradingName'],
@@ -95,7 +96,7 @@ def sync_terminal_config(
         'config_version': config['versionNo'],
         'address_lines': config['addressLines'],
         'offline_limit_hours': config['offlineLimit']['maxTransactionAgeInHours'],
-        'offline_limit_amount': config['offlineLimit']['maxCummulativeAmount']
+        'offline_limit_amount': config['offlineLimit']['maxCummulativeAmount'],
     }
 
     if terminal_id is not None:
