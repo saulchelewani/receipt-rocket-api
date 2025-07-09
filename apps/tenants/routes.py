@@ -39,7 +39,10 @@ async def create_tenant(tenant: TenantCreate, background_tasks: BackgroundTasks,
 
     codes = get_created_code(db)
 
-    db_tenant = Tenant(**tenant.model_dump(exclude={'admin_name'}), code=generate_unique_initials(tenant.name, codes))
+    db_tenant = Tenant(
+        **tenant.model_dump(exclude={'admin_name'}),
+        code=generate_unique_initials(tenant.name, codes)
+    )
     db.add(db_tenant)
     db.flush()
 

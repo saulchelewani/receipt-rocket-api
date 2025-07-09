@@ -14,8 +14,12 @@ from core.models import Role, Route
 router = APIRouter(prefix="/roles", tags=["Roles"], dependencies=[Depends(get_current_user), Depends(has_permission)])
 
 
-@router.post("/", status_code=status.HTTP_201_CREATED, response_model=RoleRead,
-             dependencies=[Depends(is_global_admin)])
+@router.post(
+    "/",
+    status_code=status.HTTP_201_CREATED,
+    response_model=RoleRead,
+    dependencies=[Depends(is_global_admin)]
+)
 def create_role(role: RoleCreate, db: Session = Depends(get_db)):
     dupl = db.query(Role).filter(Role.name == role.name).first()
     if dupl:

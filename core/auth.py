@@ -64,8 +64,6 @@ def create_refresh_token(user_id, token_version: int = 1, expires_delta: timedel
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 
-
-
 async def get_current_tenant_or_none(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
@@ -99,8 +97,11 @@ async def is_admin(user: User = Depends(get_current_user)):
     return user
 
 
-async def has_permission(request: Request, current_user: User = Depends(get_current_user),
-                         db: Session = Depends(get_db)):
+async def has_permission(
+        request: Request,
+        current_user: User = Depends(get_current_user),
+        db: Session = Depends(get_db)
+):
     path = request.url.path
     route = request.scope.get("route")
     path = route.path if route else path

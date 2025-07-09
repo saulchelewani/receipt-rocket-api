@@ -33,10 +33,15 @@ async def activate_terminal(
 
     sync_global_config(db, result["data"]["configuration"]["globalConfiguration"])
     save_tax_payer_config(db, tenant, result["data"]["configuration"]["taxpayerConfiguration"])
-    return save_new_terminal(db, result["data"], tenant.id)
+    return save_new_terminal(db, result["data"], tenant.id, code)
 
 
-def save_new_terminal(db: Session, config: dict[str, Any], tenant_id: Tenant.id):
+def save_new_terminal(
+        db: Session,
+        config: dict[str, Any],
+        tenant_id: Tenant.id,
+        activation_code: str
+):
     terminal = db.query(Terminal).filter(Terminal.terminal_id == config['activatedTerminal']['terminalId']).first()
     if terminal:
         raise HTTPException(status_code=400, detail="Terminal exists")
@@ -58,6 +63,7 @@ def save_new_terminal(db: Session, config: dict[str, Any], tenant_id: Tenant.id)
         site_id=config['configuration']['terminalConfiguration']['terminalSite']['siteId'],
         site_name=config['configuration']['terminalConfiguration']['terminalSite']['siteName'],
         device_id=get_sequence_number(),
+        activation_code=activation_code
     )
 
     db.add(terminal)
@@ -113,7 +119,7 @@ def sync_terminal_config(
 async def confirm_terminal_activation(terminal, db: Session) -> dict[str, Any]:
     headers = {
         "accept": "text/plain",
-        "x-signature": sign_hmac_sha512(terminal.terminal_id, terminal.secret_key),
+        "x-signature": sign_hmac_sha512(terminal.activation_code, terminal.secret_key),
         "Content-Type": "application/json",
         "Authorization": terminal.token
     }

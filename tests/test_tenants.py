@@ -1,6 +1,6 @@
 import re
-import uuid
 from unittest.mock import patch
+from uuid import UUID
 
 import httpx
 import pytest
@@ -30,7 +30,7 @@ async def test_create_tenant(auth_header_global_admin, test_db) -> None:
                     "name": "FMC Inc",
                     "email": "test@example.com",
                     "admin_name": "Chimwewemwe Kampingo",
-                    "phone_number": rstr.xeger(r'^(\+?265|0)[89]{2}[0-9]{7}$'),
+                    "phone_number": rstr.xeger(r"^(\+?265|0)[89]{2}[0-9]{7}$"),
                 })
             data = response.json()
 
@@ -40,7 +40,8 @@ async def test_create_tenant(auth_header_global_admin, test_db) -> None:
         user = test_db.query(User).filter(
             User.email == "test@example.com",
             User.name == "Chimwewemwe Kampingo",
-            User.tenant_id == uuid.UUID(data.get("id"))
+            User.tenant_id == UUID(data.get("id")),
+            User.status == 1001
         ).first()
         assert user is not None
         mock_send_email.assert_called_once()

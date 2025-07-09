@@ -6,6 +6,10 @@ SEED_ENTRIES = [
     {"term": 1001, "definition": "Active"},
     {"term": 1002, "definition": "Change password"},
     {"term": 1003, "definition": "Suspended"},
+    {"term": 1004, "definition": "Deleted"},
+    {"term": 1005, "definition": "Pending"},
+    {"term": 2001, "definition": "Global"},
+    {"term": 2002, "definition": "Tenant"},
 ]
 
 

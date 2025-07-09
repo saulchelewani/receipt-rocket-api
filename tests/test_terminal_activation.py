@@ -1,4 +1,5 @@
 import json
+import uuid
 from pathlib import Path
 
 import pytest
@@ -38,6 +39,14 @@ def test_activate_terminal_mocked(client, auth_header, test_db):
     assert db_tenants.vat_registered == True
     assert db_tenants.config_version == 3
     assert test_db.query(ApiLog).count() == 1
+
+    terminal = test_db.query(Terminal).filter(
+        Terminal.activation_code == "MOCK-CODE-1234-36ES",
+        Terminal.id == uuid.UUID(response.json()["id"]),
+        Terminal.site_id == "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+    ).first()
+    assert terminal is not None
+
 
 
 @pytest.mark.asyncio

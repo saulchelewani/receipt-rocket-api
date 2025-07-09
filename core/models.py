@@ -1,10 +1,12 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Column, String, ForeignKey, UUID, Table, Float, DateTime, func, Integer, JSON, Boolean, Text
+from sqlalchemy import Column, String, ForeignKey, UUID, Table, Float, DateTime, func, Integer, JSON, Boolean, Text, \
+    Enum
 from sqlalchemy.orm import Mapped, relationship, declared_attr
 
 from core.database import Base
+from core.enums import BillingCycle, PaymentStatus
 
 
 class Model(Base):
@@ -50,7 +52,7 @@ class User(Model):
     hashed_password: Mapped[str] = Column(String, nullable=True)
     tenant_id: Mapped[UUID] = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=True)
     role_id: Mapped[UUID] = Column(UUID(as_uuid=True), ForeignKey("roles.id"))
-    scope: Mapped[str] = Column(String, nullable=True)
+    scope: Mapped[int] = Column(Integer, nullable=True)
     status: Mapped[int] = Column(Integer, nullable=True, default=1001)
     last_login: Mapped[DateTime] = Column(DateTime, nullable=True)
     last_logout: Mapped[DateTime] = Column(DateTime, nullable=True)
@@ -91,7 +93,7 @@ class Tenant(Model):
     offline_transactions: Mapped[list["OfflineTransaction"]] = relationship(
         "OfflineTransaction", back_populates="tenant"
     )
-
+    subscriptions: Mapped[list["Subscription"]] = relationship("Subscription", back_populates="tenant")
 
 class Route(Model):
     __tablename__ = "routes"
@@ -137,6 +139,7 @@ class Terminal(Model):
     offline_limit_hours: Mapped[int] = Column(Integer, nullable=True)
     offline_limit_amount: Mapped[float] = Column(Float, nullable=True)
     device_id: Mapped[str] = Column(String, nullable=True)
+    activation_code: Mapped[str] = Column(String, nullable=True)
     site_id: Mapped[str] = Column(String, nullable=False)
     site_name: Mapped[str] = Column(String, nullable=True)
     is_blocked: Mapped[bool] = Column(Boolean, nullable=True)
@@ -146,6 +149,34 @@ class Terminal(Model):
     offline_transactions: Mapped[list["OfflineTransaction"]] = relationship(
         "OfflineTransaction", back_populates="terminal"
     )
+
+
+class Subscription(Model):
+    __tablename__ = "subscriptions"
+
+    tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"))
+    billing_cycle = Column(Enum(BillingCycle))
+    device_limit = Column(Integer)
+    price = Column(Float)
+    start_date = Column(DateTime, default=datetime.now())
+    end_date = Column(DateTime)
+    is_active = Column(Boolean, default=False)
+    payment = relationship("Payment", back_populates="subscription", uselist=False)
+
+    tenant: Mapped["Tenant"] = relationship("Tenant", back_populates="subscriptions")
+
+
+class Payment(Model):
+    __tablename__ = "payments"
+
+    subscription_id = Column(UUID(as_uuid=True), ForeignKey("subscriptions.id"))
+    status = Column(Enum(PaymentStatus), default=PaymentStatus.PENDING)
+    proof_url = Column(String)  # Link to uploaded proof (e.g., in S3, local storage)
+    uploaded_at = Column(DateTime, default=datetime.utcnow)
+    approved_at = Column(DateTime, nullable=True)
+    admin_id = Column(UUID(as_uuid=True), nullable=True)  # Optionally track who approved
+
+    subscription = relationship("Subscription", back_populates="payment")
 
 
 class OfflineTransaction(Model):

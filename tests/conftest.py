@@ -12,7 +12,7 @@ from starlette.testclient import TestClient
 from apps.main import app
 from core.auth import create_access_token
 from core.database import Base, get_db
-from core.enums import RoleEnum, Scope
+from core.enums import RoleEnum, Scope, StatusEnum
 from core.models import Tenant, Role, User, Terminal, Profile, role_route_association, Route, Product, Item, TaxRate, \
     GlobalConfig, OfflineTransaction, Dictionary
 from core.settings import settings
@@ -115,6 +115,7 @@ def tenant_user_headers(test_user, test_terminal):
         "x-device-id": test_terminal.device_id
     }
 
+
 @pytest.fixture()
 def auth_header_tenant_admin(test_tenant_admin, test_tenant: Tenant):
     token = create_access_token(data={"sub": test_tenant_admin.email},
@@ -178,12 +179,15 @@ def test_route(test_db: Session) -> Route:
 def test_terminal(test_db: Session, test_tenant: Tenant):
     terminal = test_db.query(Terminal).first()
     if terminal: return terminal
-    terminal = Terminal(terminal_id='Terminal 1', secret_key=settings.SECRET_KEY, tenant_id=test_tenant.id,
-                        config_version=1,
-                        site_id=str(uuid.uuid4()),
-                        label='Terminal 1',
-                        token=get_sequence_number(),
-                        device_id=get_sequence_number())
+    terminal = Terminal(
+        terminal_id='Terminal 1',
+        secret_key=settings.SECRET_KEY, tenant_id=test_tenant.id,
+        config_version=1,
+        site_id=str(uuid.uuid4()),
+        label='Terminal 1',
+        token=get_sequence_number(),
+        activation_code=get_sequence_number(),
+        device_id=get_sequence_number())
     test_db.add(terminal)
     test_db.commit()
     test_db.refresh(terminal)
@@ -358,7 +362,8 @@ def test_global_admin(client, test_db: Session):
         phone_number="0886265490",
         name="Global Admin",
         role_id=role.id,
-        scope=Scope.GLOBAL
+        scope=Scope.GLOBAL,
+        status=StatusEnum.ACTIVE
     )
     test_db.add(user)
     test_db.commit()
@@ -403,59 +408,3 @@ def test_dictionary(test_db: Session):
     test_db.commit()
     test_db.refresh(dictionary)
     return dictionary
-#
-# def create_route(test_db: Session) -> Route:
-#     route = Route(path='/', method='GET', action='GET:/', name="Get user list")
-#     test_db.add(route)
-#     test_db.commit()
-#     test_db.refresh(route)
-#     return route
-#
-#
-# @pytest.fixture
-# def test_route(test_db: Session):
-#     return create_route(test_db)
-#
-#
-# @pytest.fixture
-# def test_role(test_db: Session):
-#     return create_role(test_db, "test_role")
-#
-#
-# @pytest.fixture
-# def test_global_admin(test_db: Session):
-#     db_role = test_db.query(Role).filter(Role.name == 'global_admin').first()
-#     if db_role: return db_role
-#     return create_role(test_db, "global_admin")
-#
-#
-
-
-#
-# @pytest.fixture
-# def test_workflow(test_db: Session, test_admin_user, test_workflow_category):
-#     db_workflow = test_db.query(Workflow).filter(Workflow.name == 'test_workflow',
-#                                                  Workflow.category_id == test_workflow_category.id,
-#                                                  Workflow.tenant_id == test_admin_user.tenant_id).first()
-#     if db_workflow: return db_workflow
-#     db_workflow = Workflow(name="test_workflow", description="A test workflow", tenant_id=test_admin_user.tenant_id,
-#                            category_id=test_workflow_category.id)
-#     test_db.add(db_workflow)
-#     test_db.commit()
-#     test_db.refresh(db_workflow)
-#     return db_workflow
-#
-#
-# @pytest.fixture
-# def test_workflow_category(test_db: Session):
-#     db_workflow_category = test_db.query(WorkflowCategory).filter(
-#         WorkflowCategory.name == 'test_workflow_category').first()
-#     if db_workflow_category: return db_workflow_category
-#     db_workflow_category = WorkflowCategory(name="test_workflow_category", description="A test workflow category")
-#     test_db.add(db_workflow_category)
-#     test_db.commit()
-#     test_db.refresh(db_workflow_category)
-#     return db_workflow_category
-#
-#
-# TEST_TENANT_ID = "test_tenant"

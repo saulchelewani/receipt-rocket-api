@@ -6,10 +6,11 @@ from pydantic import BaseModel
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from sqlalchemy.orm import Session
+from starlette import status
 
 from core.auth import create_access_token, verify_password, create_refresh_token, SECRET_KEY, ALGORITHM
 from core.database import get_db
-from core.enums import Scope
+from core.enums import Scope, StatusEnum
 from core.models import User, Dictionary
 from core.settings import settings
 
@@ -29,11 +30,14 @@ class AuthToken(BaseModel):
 async def login(request: Request, db: Session = Depends(get_db), form_data: OAuth2PasswordRequestForm = Depends()):
     user = db.query(User).filter(User.email == form_data.username).first()
     if not user or not verify_password(form_data.password, user.hashed_password):
-        raise HTTPException(status_code=401, detail="Invalid credentials")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
 
-    if user.status != 1001:
-        status = db.query(Dictionary).filter(Dictionary.term == user.status).first()
-        raise HTTPException(status_code=401, detail=f"Login failed: {status.definition}")
+    if user.status is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Account not in active state")
+
+    if user.status != StatusEnum.ACTIVE:
+        dictionary = db.query(Dictionary).filter(Dictionary.term == user.status).first()
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=f"Login failed: {dictionary.definition}")
 
     token_data = {
         "sub": user.email,
@@ -44,11 +48,14 @@ async def login(request: Request, db: Session = Depends(get_db), form_data: OAut
     delta = timedelta(minutes=float(settings.ACCESS_TOKEN_EXPIRE_MINUTES))
     expiry = datetime.now() + delta
     access_token = create_access_token(token_data, delta)
-    refresh_token = create_refresh_token(user_id=user.id, token_version=user.refresh_token_version)
+    refresher = create_refresh_token(user_id=user.id, token_version=user.refresh_token_version)
+
+    user.last_login = datetime.now()
+    db.commit()
 
     return {
         "access_token": access_token,
-        "refresh_token": refresh_token,
+        "refresh_token": refresher,
         "token_type": "bearer",
         "user": user,
         "expiry": expiry.isoformat()
@@ -62,11 +69,11 @@ class RefreshTokenResponse(BaseModel):
 
 
 @router.post("/refresh", response_model=RefreshTokenResponse)
-def refresh_token(refresh_token: str, db: Session = Depends(get_db)):
+def refresh_token(refresher: str, db: Session = Depends(get_db)):
     from jose import JWTError, jwt
 
     try:
-        payload = jwt.decode(refresh_token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(refresher, SECRET_KEY, algorithms=[ALGORITHM])
         user_id = int(payload.get("sub"))
         token_version = int(payload.get("ver"))
     except (JWTError, ValueError):
