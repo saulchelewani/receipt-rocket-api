@@ -21,12 +21,12 @@ def test_get_products(client, device_headers, test_db):
     response = client.get("/api/v1/products", headers=device_headers)
 
     assert response.status_code == 200
-    assert test_db.query(Product).count() == 1
+    assert test_db.query(Product).count() == 2
 
     product = test_db.query(Product).first()
-    assert product.code == "6161101860079"
-    assert product.description == "Kericho Gold 200g"
-    assert product.unit_price == 2300
+    assert product.code == "2000000000001"
+    assert product.description == "Mineral drink 330 mls"
+    assert product.unit_price == 1600
     assert product.tax_rate_id == "A"
 
 

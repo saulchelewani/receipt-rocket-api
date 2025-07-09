@@ -121,7 +121,7 @@ async def confirm_terminal_activation(terminal, db: Session) -> dict[str, Any]:
         "accept": "text/plain",
         "x-signature": sign_hmac_sha512(terminal.activation_code, terminal.secret_key),
         "Content-Type": "application/json",
-        "Authorization": terminal.token
+        "Authorization": f"Bearer {terminal.token}"
     }
 
     payload = {
@@ -134,18 +134,16 @@ async def confirm_terminal_activation(terminal, db: Session) -> dict[str, Any]:
             response = await client.post(
                 url,
                 headers=headers,
-                json=payload)
-
-            # logging.debug(response.text)
+                json=payload
+            )
             response.raise_for_status()
-
             await write_api_log(db, payload, response, url, headers)
+            data = response.json()
 
-            if int(response.json()["statusCode"]) < -1:
-                raise HTTPException(status_code=400, detail=response.json()["remark"])
+            if int(data.get("statusCode")) < 1:
+                raise HTTPException(status_code=400, detail=data.get("remark"))
 
-            return response.json()
-
+            return data
     except Exception as e:
         await write_api_exception_log(db, e, payload, url, headers)
         raise HTTPException(status_code=400, detail=f"error: {str(e)}")

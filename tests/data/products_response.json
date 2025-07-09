@@ -1,26 +1,33 @@
 {
-  "statusCode": 0,
-  "remark": "string",
+  "statusCode": 1,
+  "remark": "Products and services retrieved successfully.",
   "data": [
     {
-      "productCode": "6161101860079",
-      "productName": "Kericho Gold",
-      "description": "Kericho Gold 200g",
-      "quantity": 43,
-      "unitOfMeasure": "boxes",
-      "price": 2300,
-      "siteId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
-      "productExpiryDate": "2025-06-16T14:04:59.195Z",
-      "minimumStockLevel": 0,
+      "productCode": "2000000000001",
+      "productName": "Minerals",
+      "description": "Mineral drink 330 mls",
+      "quantity": 25.00,
+      "unitOfMeasure": "Milligram/liter",
+      "price": 1600.00,
+      "siteId": "BL44c73cd2-bff0-4d54-9437-ff4e3fdd294a",
+      "productExpiryDate": "2026-01-20T00:00:00",
+      "minimumStockLevel": 5.000,
+      "taxRateId": "A",
+      "isProduct": true
+    },
+    {
+      "productCode": "2000000000004",
+      "productName": "Ram",
+      "description": "computer Ram",
+      "quantity": 50.00,
+      "unitOfMeasure": "Each",
+      "price": 150000.00,
+      "siteId": "BL44c73cd2-bff0-4d54-9437-ff4e3fdd294a",
+      "productExpiryDate": "9999-12-31T00:00:00",
+      "minimumStockLevel": 100.000,
       "taxRateId": "A",
       "isProduct": true
     }
   ],
-  "errors": [
-    {
-      "errorCode": 0,
-      "fieldName": "string",
-      "errorMessage": "string"
-    }
-  ]
+  "errors": []
 }

@@ -42,7 +42,7 @@ def sign_hmac_sha512(message: str, secret_key: str) -> str:
     """
     Generate a base64-encoded HMAC-SHA512 signature.
 
-    :param message: The message to be signed (usually a JSON string).
+    :param message: The message to be signed.
     :param secret_key: The secret key used for signing.
     :return: Base64-encoded signature string.
     """

@@ -41,7 +41,7 @@ async def fetch_products_from_api(db: Session, terminal: Terminal | type[Termina
     payload = {"siteId": terminal.site_id, "tin": terminal.tenant.tin}
     headers = {
         "Content-Type": "application/json",
-        "Authorization": terminal.token
+        "Authorization": f"Bearer {terminal.token}"
     }
     try:
         async with httpx.AsyncClient(timeout=30.0, verify=False) as client:
@@ -51,8 +51,8 @@ async def fetch_products_from_api(db: Session, terminal: Terminal | type[Termina
                 json=payload,
                 headers=headers,
             )
-            response.raise_for_status()
             await write_api_log(db, payload, response, url, headers)
+            response.raise_for_status()
 
             data = response.json()
             if int(data.get("statusCode", 0)) < -1:
@@ -105,8 +105,7 @@ async def sync_products_with_db(db: Session, products_data: list[dict], tenant_i
                 "is_product": product_data.get("isProduct", True),
                 "unit_of_measure": product_data.get("unitOfMeasure"),
                 "unit_price": product_data.get("price", 0.0),
-                "expiry_date": datetime.strptime(product_data["productExpiryDate"],
-                                                 "%Y-%m-%dT%H:%M:%S.%fZ") if product_data.get(
+                "expiry_date": datetime.fromisoformat(product_data["productExpiryDate"]) if product_data.get(
                     "productExpiryDate") else None,
                 "minimum_stock_level": product_data.get("minimumStockLevel", 0),
                 "tax_rate_id": product_data.get("taxRateId"),
