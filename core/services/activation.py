@@ -31,7 +31,12 @@ async def activate_terminal(
         raise HTTPException(status_code=400, detail="Terminal activation failed")
 
     sync_global_config(db, result["data"]["configuration"]["globalConfiguration"])
-    save_tax_payer_config(db, tenant, result["data"]["configuration"]["taxpayerConfiguration"])
+    save_tax_payer_config(
+        db,
+        tenant,
+        result["data"]["configuration"]["taxpayerConfiguration"],
+        result["data"]["activatedTerminal"]["taxpayerId"]
+    )
     return save_new_terminal(db, result["data"], tenant.id, code)
 
 

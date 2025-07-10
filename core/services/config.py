@@ -34,10 +34,11 @@ async def get_configuration(terminal, db: Session):
         raise HTTPException(status_code=400, detail=str(e))
 
 
-def save_tax_payer_config(db: Session, tenant: Tenant, config: dict[str, Any]) -> Tenant:
+def save_tax_payer_config(db: Session, tenant: Tenant, config: dict[str, Any], tax_payer_id: int = None) -> Tenant:
+    print(config)
     if tenant.config_version == config['versionNo']:
         return tenant
-
+    print(config)
     profile_dict = {
         'tin': config['tin'],
         'version': config['versionNo'],
@@ -45,8 +46,11 @@ def save_tax_payer_config(db: Session, tenant: Tenant, config: dict[str, Any]) -
         'tax_office_code': config['taxOffice']['code'],
         'tax_office_name': config['taxOffice']['name'],
         'activated_tax_rate_ids': config['activatedTaxRateIds'],
-        'config_version': config['versionNo']
+        'config_version': config['versionNo'],
     }
+    if tax_payer_id is not None:
+        profile_dict['taxpayer_id'] = tax_payer_id
+
     for key, value in profile_dict.items():
         setattr(tenant, key, value)
 

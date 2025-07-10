@@ -1,78 +1,80 @@
 {
-  "statusCode": 0,
-  "remark": "string",
+  "statusCode": 1,
+  "remark": "Terminal Activated, pending for confirmation request",
   "data": {
     "activatedTerminal": {
-      "terminalId": "3a6d3703-1c39-41e8-98ce-b38d9574540d",
+      "terminalId": "d20dcd75-6b02-40ff-9d93-0347f596949b",
       "terminalPosition": 1,
-      "taxpayerId": "b5f5343f-3ccb-4495-807a-c827b7ed8073",
-      "activationDate": "2025-06-16T09:28:59.188Z",
+      "taxpayerId": 266,
+      "activationDate": "2025-07-09T12:14:41.018962+02:00",
       "terminalCredentials": {
-        "jwtToken": "f47ac10b58cc4372a5670e02b2c3d479",
-        "secretKey": "a9T3Klm0oPqRs1Zx8VwYuN3rGhCbXjL5"
+        "jwtToken": "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiMzE2OTkxNDUiLCJodHRwczovL21yYS5tdy9EZXZpY2VJZCI6ImQyMGRjZDc1LTZiMDItNDBmZi05ZDkzLTAzNDdmNTk2OTQ5YiIsImh0dHBzOi8vbXJhLm13L1NlY3JldEtleSI6IjEzM2YzNGMwMzE1MWFmNjQ5Mzc5YjAyMTk2Nzc1MTg2NzE0NjNlOSIsImh0dHBzOi8vbXJhLm13L0FQSUtleSI6IjEzM2YzNGMwMzE1MWFmNjQ5Mzc5YjAyMTk2Nzc1MTg2NzE0NjNlOSIsImh0dHBzOi8vbXJhLm13L1RJTiI6IjMxNjk5MTQ1IiwiaXNzIjoiTVJBIiwiYXVkIjoiRUlTVGVybWluYWxzIn0.AjtklNK-TXvQSvw7CccruIltxTB6VPr6tR8j5AO7XSuxulFtQsGaJABfDPh8y0fLIjqUSznWclpVX4MA43tt-Q",
+        "secretKey": "133f34c03151af649379b0219677518671463e9"
       }
     },
     "configuration": {
       "globalConfiguration": {
-        "id": "7efc05b8-0c4d-4def-be43-a0c7433a0f93",
+        "id": 2035,
         "versionNo": 1,
         "taxrates": [
           {
-            "id": "string",
-            "name": "string",
-            "chargeMode": "string",
-            "ordinal": 0,
-            "rate": 0
+            "id": "A",
+            "name": "Standard Rated",
+            "chargeMode": "Item",
+            "ordinal": 100,
+            "rate": 16.500
+          },
+          {
+            "id": "B",
+            "name": "Zero Rated",
+            "chargeMode": "Item",
+            "ordinal": 100,
+            "rate": 0.000
+          },
+          {
+            "id": "E",
+            "name": "Exempt",
+            "chargeMode": "Item",
+            "ordinal": 100,
+            "rate": 0.000
           }
         ]
       },
       "terminalConfiguration": {
-        "versionNo": 2.1,
-        "terminalLabel": "string",
-        "isActiveTerminal": true,
-        "emailAddress": "test@example.com",
-        "phoneNumber": "0888800800",
-        "tradingName": "Receipt Rocket",
+        "versionNo": 1,
+        "terminalLabel": "Till 6",
+        "isActiveTerminal": false,
+        "emailAddress": "denis.disi@gmail.com",
+        "phoneNumber": "0888465650",
+        "tradingName": "Nachiwale Investments",
         "addressLines": [
-          "string"
+          "Fargo"
         ],
         "terminalSite": {
-          "siteId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
-          "siteName": "Receipt Rocket"
+          "siteId": "BL44c73cd2-bff0-4d54-9437-ff4e3fdd294a",
+          "siteName": "Fargo"
         },
         "offlineLimit": {
           "maxTransactionAgeInHours": 72,
-          "maxCummulativeAmount": 0
+          "maxCummulativeAmount": 333333
         }
       },
       "taxpayerConfiguration": {
-        "versionNo": 3,
-        "tin": "20202020",
-        "isVATRegistered": true,
-        "taxOfficeCode": "string",
+        "versionNo": 1,
+        "tin": "31699145",
+        "isVATRegistered": false,
+        "taxOfficeCode": "BSTO",
         "taxOffice": {
-          "code": "string",
-          "name": "string"
+          "code": "BSTO",
+          "name": "Blantyre STO"
         },
         "activatedTaxRateIds": [
-          "string"
+          "CGT",
+          "NRT"
         ],
-        "activatedTaxrates": [
-          {
-            "id": 0,
-            "taxpayerConfigurationId": 0,
-            "taxRateId": "A"
-          }
-        ]
+        "activatedTaxrates": null
       }
     }
   },
-  "errors": [
-    {
-      "errorCode": 0,
-      "fieldName": "string",
-      "errorMessage": "string"
-    }
-  ]
+  "errors": []
 }
-

@@ -31,19 +31,20 @@ def test_activate_terminal_mocked(client, auth_header, test_db):
 
     assert response.status_code == 200
     assert test_db.query(Terminal).count() == 1
-    assert test_db.query(Terminal).first().site_id == "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+    assert test_db.query(Terminal).first().site_id == "BL44c73cd2-bff0-4d54-9437-ff4e3fdd294a"
 
     assert test_db.query(Tenant).count() == 1
     db_tenants = test_db.query(Tenant).first()
-    assert db_tenants.tin == "20202020"
-    assert db_tenants.vat_registered == True
-    assert db_tenants.config_version == 3
+    assert db_tenants.tin == "31699145"
+    assert db_tenants.vat_registered == False
+    assert db_tenants.config_version == 1
+    assert db_tenants.taxpayer_id == 266
     assert test_db.query(ApiLog).count() == 1
 
     terminal = test_db.query(Terminal).filter(
         Terminal.activation_code == "MOCK-CODE-1234-36ES",
         Terminal.id == uuid.UUID(response.json()["id"]),
-        Terminal.site_id == "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+        Terminal.site_id == "BL44c73cd2-bff0-4d54-9437-ff4e3fdd294a",
         Terminal.position == 1
     ).first()
     assert terminal is not None

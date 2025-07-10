@@ -26,10 +26,9 @@ def to_julian_date(date: datetime.date) -> int:
     if month <= 2:
         year -= 1
         month += 12
-    A = year // 100
-    B = 2 - A + A // 4
-    JD = int((365.25 * (year + 4716)) + (30.6001 * (month + 1)) + day + B - 1524)
-    return JD
+    a = year // 100
+    b = 2 - a + a // 4
+    return int((365.25 * (year + 4716)) + (30.6001 * (month + 1)) + day + b - 1524)
 
 
 @dataclass
@@ -39,7 +38,7 @@ class InvoiceGenerationRequest:
     invoice_total: float
     vat_amount: float
     num_items: int
-    business_id: int
+    business_id: int  # TODO not available on the activation response
     terminal_position: int
 
 
@@ -47,7 +46,7 @@ class InvoiceGenerator:
 
     @staticmethod
     def generate_combined_string(
-            taxpayer_id: int,
+            taxpayer_id: int,  # TODO not available on the activation response
             position: int,
             julian_date: int,
             transaction_count: int
@@ -65,8 +64,12 @@ class InvoiceGenerator:
 
     def generate_signature_url(self, req: InvoiceGenerationRequest, secret_key: str, base_url: str) -> Tuple[str, str]:
         julian_date = to_julian_date(req.transaction_date.date())
-        invoice_number = self.generate_combined_string(req.business_id, req.terminal_position, julian_date,
-                                                       req.transaction_count)
+        invoice_number = self.generate_combined_string(
+            req.business_id,
+            req.terminal_position,
+            julian_date,
+            req.transaction_count
+        )
         julian_base64 = b10_2_b64(julian_date)
 
         query_string = (

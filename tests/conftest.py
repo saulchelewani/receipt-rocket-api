@@ -228,7 +228,7 @@ def test_tenant(test_db: Session):
         email="test@example.com",
         phone_number="0886265490",
         tin=31699145,
-        config_version=1
+        config_version=0
     )
     test_db.add(tenant)
     test_db.commit()

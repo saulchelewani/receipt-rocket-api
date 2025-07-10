@@ -81,6 +81,7 @@ class Tenant(Model):
     phone_number: Mapped[str] = Column(String, nullable=True)
     tin: Mapped[str] = Column(String, nullable=True)
     config_version: Mapped[float] = Column(Integer, nullable=True)
+    taxpayer_id: Mapped[int] = Column(Integer, nullable=True)
     vat_registered: Mapped[bool] = Column(Boolean, nullable=True)
     activated_tax_rate_ids: Mapped[list[str]] = Column(JSON, nullable=True)
     tax_office_code: Mapped[str] = Column(String, nullable=True)
