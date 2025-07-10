@@ -64,7 +64,7 @@ class InvoiceLineItemResponse(BaseModel):
     productCode: str
     quantity: int
     discount: float
-    id: str
+    id: int
     description: str
     unitPrice: float
     total: float

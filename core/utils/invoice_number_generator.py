@@ -38,7 +38,7 @@ class InvoiceGenerationRequest:
     invoice_total: float
     vat_amount: float
     num_items: int
-    business_id: int  # TODO not available on the activation response
+    business_id: int
     terminal_position: int
 
 
@@ -46,7 +46,7 @@ class InvoiceGenerator:
 
     @staticmethod
     def generate_combined_string(
-            taxpayer_id: int,  # TODO not available on the activation response
+            taxpayer_id: int,
             position: int,
             julian_date: int,
             transaction_count: int

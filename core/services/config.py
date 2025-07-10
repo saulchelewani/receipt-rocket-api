@@ -18,7 +18,7 @@ async def get_configuration(terminal, db: Session):
         "Authorization": f"Bearer {terminal.token}",
     }
     try:
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(verify=False) as client:
             url = f"{settings.MRA_EIS_URL}/configuration/get-latest-configs"
             response = await client.post(
                 url,
@@ -35,10 +35,8 @@ async def get_configuration(terminal, db: Session):
 
 
 def save_tax_payer_config(db: Session, tenant: Tenant, config: dict[str, Any], tax_payer_id: int = None) -> Tenant:
-    print(config)
     if tenant.config_version == config['versionNo']:
         return tenant
-    print(config)
     profile_dict = {
         'tin': config['tin'],
         'version': config['versionNo'],

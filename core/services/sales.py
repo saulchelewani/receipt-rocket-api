@@ -26,7 +26,7 @@ async def submit_transaction(transaction, terminal, db) -> SalesResponse:
                 headers=headers
             )
             await write_api_log(db, transaction, response, url, headers)
-            response.raise_for_status()
+            # response.raise_for_status()
             return SalesResponse(response.json())
     except httpx.TimeoutException:
         await write_api_exception_log(db, "Request timed out", transaction, url, headers)

@@ -45,9 +45,32 @@ def test_make_a_sale(client, test_db, device_headers, test_terminal, test_produc
         ]
     })
 
+    data = response.json()
+
+    print(data)
     assert response.status_code == 200
-    assert response.json()["validation_url"] is not None
-    assert isinstance(response.json()["invoice"], dict)
+    assert data["validation_url"] is not None
+    assert isinstance(data["invoice"], dict)
+
+
+@pytest.mark.asyncio
+@respx.mock
+def test_make_a_sale_tin_not_found(client, test_db, device_headers, test_terminal, test_product, test_global_config):
+    respx.post(f"{settings.MRA_EIS_URL}/sales/submit-sales-transaction").mock(
+        return_value=Response(200, json=get_mock_data(filename="sales_response_tin_not_found.json")))
+
+    response = client.post("/api/v1/sales", headers=device_headers, json={
+        "payment_method": PaymentMethod.MOBILE_MONEY,
+        "invoice_line_items": [
+            {
+                "product_code": test_product.code,
+                "quantity": 1,
+            }
+        ]
+    })
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == "TIN not found"
 
 
 @pytest.mark.asyncio

@@ -1,4 +1,3 @@
-import uuid
 from datetime import datetime
 from typing import Annotated
 
@@ -82,7 +81,7 @@ async def submit_a_transaction(
         invoice_total += amount
 
         line_items.append({
-            "id": str(uuid.uuid4()),
+            "id": len(line_items) + 1,
             "productCode": item.product_code,
             "description": product.description,
             "unitPrice": product.unit_price,
@@ -110,7 +109,7 @@ async def submit_a_transaction(
 
     invoice = {
         "invoiceHeader": {
-            "invoiceNumber": generate_invoice_number(int(terminal.tenant.tin), 1, datetime.now(), 1),
+            "invoiceNumber": generate_invoice_number(int(terminal.tenant.tin), terminal.position, datetime.now(), 1),
             "invoiceDateTime": datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
             "sellerTIN": terminal.tenant.tin,
             "buyerTIN": request.buyer_tin,
@@ -149,7 +148,7 @@ async def submit_a_transaction(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Update terminal configuration")
 
     if not response.success():
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=response.remark)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=response.remark())
 
     return {
         "validation_url": response.validation_url(),
