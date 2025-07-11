@@ -147,6 +147,7 @@ class Terminal(Model):
     site_name: Mapped[str] = Column(String, nullable=True)
     is_blocked: Mapped[bool] = Column(Boolean, nullable=True)
     blocking_reason: Mapped[str | None] = Column(String, nullable=True)
+    transaction_count: Mapped[int] = Column(Integer, nullable=True, default=0)
 
     tenant: Mapped["Tenant"] = relationship("Tenant", back_populates="terminals")
     offline_transactions: Mapped[list["OfflineTransaction"]] = relationship(

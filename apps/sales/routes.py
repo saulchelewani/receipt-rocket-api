@@ -109,7 +109,12 @@ async def submit_a_transaction(
 
     invoice = {
         "invoiceHeader": {
-            "invoiceNumber": generate_invoice_number(int(terminal.tenant.tin), terminal.position, datetime.now(), 1),
+            "invoiceNumber": generate_invoice_number(
+                taxpayer_id=terminal.tenant.taxpayer_id,
+                position=terminal.position,
+                transaction_date=datetime.now(),
+                transaction_count=terminal.transaction_count + 1
+            ),
             "invoiceDateTime": datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
             "sellerTIN": terminal.tenant.tin,
             "buyerTIN": request.buyer_tin,
@@ -149,6 +154,9 @@ async def submit_a_transaction(
 
     if not response.success():
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=response.remark())
+
+    terminal.transaction_count += 1
+    db.commit()
 
     return {
         "validation_url": response.validation_url(),
