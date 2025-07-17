@@ -5,6 +5,7 @@ from datetime import timedelta
 from pathlib import Path
 
 import pytest
+import rstr
 from sqlalchemy import create_engine, StaticPool, insert
 from sqlalchemy.orm import sessionmaker, Session
 from starlette.testclient import TestClient
@@ -228,12 +229,12 @@ def test_tenant(test_db: Session):
     if tenant: return tenant
     tenant = Tenant(
         name="test",
-        code="test",
+        code=rstr.xeger(r"^[A-Z]+[0-9]{4}$"),
         email="test@example.com",
         phone_number="0886265490",
         tin="31699145",
         config_version=0,
-        taxpayer_id=1234
+        taxpayer_id=2345
     )
     test_db.add(tenant)
     test_db.commit()

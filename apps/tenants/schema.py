@@ -13,7 +13,7 @@ class TenantBase(BaseModel):
 
 class TenantRead(TenantBase):
     id: UUID
-    code: str
+    code: constr(pattern=r"^[A-Z]+[0-9]{4}$")
 
 
 class TenantCreate(TenantBase):
