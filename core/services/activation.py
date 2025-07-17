@@ -4,7 +4,7 @@ from typing import Any
 import httpx
 
 from core.utils.api_logger import write_api_log, write_api_exception_log
-from core.utils.helpers import get_sequence_number, sign_hmac_sha512
+from core.utils.helpers import get_sequence_number, sign_hmac_sha512, create_fake_mac_address
 
 logging.basicConfig(
     level=logging.INFO,
@@ -25,7 +25,7 @@ async def activate_terminal(
         db: Session,
         x_mac_address: str | None = None
 ) -> type[Terminal] | Terminal:
-    result = await activate_terminal_with_code(code=code, mac_address=x_mac_address, db=db)
+    result = await activate_terminal_with_code(code=code, db=db)
 
     if not result:
         raise HTTPException(status_code=400, detail="Terminal activation failed")
@@ -154,7 +154,7 @@ async def confirm_terminal_activation(terminal, db: Session) -> dict[str, Any]:
         raise HTTPException(status_code=400, detail=f"error: {str(e)}")
 
 
-async def activate_terminal_with_code(db: Session, code: str, mac_address: str) -> dict[str, Any]:
+async def activate_terminal_with_code(db: Session, code: str) -> dict[str, Any]:
     payload = {
         "terminalActivationCode": code,
         "environment": {
@@ -162,7 +162,7 @@ async def activate_terminal_with_code(db: Session, code: str, mac_address: str) 
                 "osName": "Android",
                 "osVersion": "Windows 11",
                 "osBuild": "11.901.2",
-                "macAddress": mac_address
+                "macAddress": create_fake_mac_address()
             },
             "pos": {
                 "productID": settings.APP_NAME,
