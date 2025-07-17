@@ -141,7 +141,6 @@ async def confirm_terminal_activation(terminal, db: Session) -> dict[str, Any]:
                 headers=headers,
                 json=payload
             )
-            response.raise_for_status()
             await write_api_log(db, payload, response, url, headers)
             data = response.json()
 
@@ -178,7 +177,6 @@ async def activate_terminal_with_code(db: Session, code: str) -> dict[str, Any]:
                 timeout=settings.MRA_EIS_TIMEOUT,
                 json=payload
             )
-            response.raise_for_status()
             await write_api_log(db, payload, response, url)
 
             if int(response.json()["statusCode"]) < -1:
