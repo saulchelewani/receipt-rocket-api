@@ -3,7 +3,7 @@ from datetime import datetime
 
 from sqlalchemy import Column, String, ForeignKey, UUID, Table, Float, DateTime, func, Integer, JSON, Boolean, Text, \
     Enum
-from sqlalchemy.orm import Mapped, relationship, declared_attr
+from sqlalchemy.orm import Mapped, relationship, mapped_column
 
 from core.database import Base
 from core.enums import BillingCycle, PaymentStatus
@@ -30,17 +30,21 @@ class Model(Base):
     def to_dict(self):
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
-    @declared_attr
-    def id(self):
-        return Column(UUID(as_uuid=True), default=uuid.uuid4, primary_key=True)
+    id = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    created_at = Column(DateTime, default=func.now())
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
 
-    @declared_attr
-    def created_at(self):
-        return Column(DateTime, default=func.now())
+    # @declared_attr
+    # def id(self):
+    #     return Column(UUID(as_uuid=True), default=uuid.uuid4, primary_key=True)
 
-    @declared_attr
-    def updated_at(self):
-        return Column(DateTime, default=func.now(), onupdate=func.now())
+    # @declared_attr
+    # def created_at(self):
+    #     return Column(DateTime, default=func.now())
+    #
+    # @declared_attr
+    # def updated_at(self):
+    #     return Column(DateTime, default=func.now(), onupdate=func.now())
 
 
 class User(Model):
@@ -190,7 +194,7 @@ class OfflineTransaction(Model):
     terminal_id: Mapped[UUID] = Column(UUID(as_uuid=True), ForeignKey("terminals.id"), nullable=False)
     transaction_id: Mapped[str] = Column(String, nullable=False)
     details: Mapped[dict] = Column(JSON, nullable=False)
-    submitted_at: Mapped[DateTime] = Column(DateTime, nullable=True)
+    submitted_at: Mapped[DateTime | None] = Column(DateTime, nullable=True)
     status: Mapped[str] = Column(String, nullable=True)
 
     tenant: Mapped["Tenant"] = relationship("Tenant", back_populates="offline_transactions")

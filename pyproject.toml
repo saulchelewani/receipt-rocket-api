@@ -31,7 +31,8 @@ dependencies = [
     "pydantic[email]",
     "aiosmtplib",
     "jinja2",
-    "aiosmtpd"
+    "aiosmtpd",
+    "mysql-connector-python"
 ]
 
 [project.optional-dependencies]

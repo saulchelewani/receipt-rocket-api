@@ -9,7 +9,7 @@ class BaseResponse:
         return int(self.body["statusCode"])
 
     def success(self) -> bool:
-        return self.status_code() == 0
+        return self.status_code() > -1
 
     def remark(self) -> str:
         return self.body["remark"]

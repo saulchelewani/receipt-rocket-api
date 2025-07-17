@@ -22,6 +22,7 @@ pydantic[email]
 aiosmtplib
 jinja2
 aiosmtpd
+mysql-connector-python
 
 [dev]
 pytest-cov

@@ -47,7 +47,6 @@ def test_make_a_sale(client, test_db, device_headers, test_terminal, test_produc
 
     data = response.json()
 
-    print(data)
     assert response.status_code == 200
     assert data["validation_url"] is not None
     assert isinstance(data["invoice"], dict)

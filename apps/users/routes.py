@@ -2,7 +2,6 @@ from uuid import UUID
 
 from fastapi import APIRouter, HTTPException, BackgroundTasks
 from fastapi.params import Depends
-from pygments.styles.dracula import background
 from sqlalchemy.orm import Session
 from starlette import status
 

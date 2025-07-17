@@ -27,6 +27,7 @@ Requires-Dist: pydantic[email]
 Requires-Dist: aiosmtplib
 Requires-Dist: jinja2
 Requires-Dist: aiosmtpd
+Requires-Dist: mysql-connector-python
 Provides-Extra: dev
 Requires-Dist: pytest-cov; extra == "dev"
 Requires-Dist: black; extra == "dev"

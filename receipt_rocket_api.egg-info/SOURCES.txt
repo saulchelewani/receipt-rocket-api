@@ -26,6 +26,7 @@ receipt_rocket_api.egg-info/requires.txt
 receipt_rocket_api.egg-info/top_level.txt
 tests/test_auth.py
 tests/test_config.py
+tests/test_dictionary.py
 tests/test_products.py
 tests/test_roles.py
 tests/test_routes.py
