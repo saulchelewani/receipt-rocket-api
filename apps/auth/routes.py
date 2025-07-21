@@ -8,10 +8,11 @@ from slowapi.util import get_remote_address
 from sqlalchemy.orm import Session
 from starlette import status
 
+from apps.config.schema import TerminalRead
 from core.auth import create_access_token, verify_password, create_refresh_token, SECRET_KEY, ALGORITHM
 from core.database import get_db
 from core.enums import Scope, StatusEnum
-from core.models import User, Dictionary
+from core.models import User, Dictionary, Terminal
 from core.settings import settings
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
@@ -23,6 +24,7 @@ class AuthToken(BaseModel):
     refresh_token: str
     token_type: str
     expiry: datetime
+    terminals: list[TerminalRead]
 
 
 @router.post("/login", response_model=AuthToken)
@@ -45,6 +47,9 @@ async def login(request: Request, db: Session = Depends(get_db), form_data: OAut
         "is_global": user.scope == Scope.GLOBAL
     }
 
+    if user.scope == Scope.TENANT:
+        terminals = db.query(Terminal).filter(Terminal.tenant_id == user.tenant_id).all()
+
     delta = timedelta(minutes=float(settings.ACCESS_TOKEN_EXPIRE_MINUTES))
     expiry = datetime.now() + delta
     access_token = create_access_token(token_data, delta)
@@ -58,8 +63,15 @@ async def login(request: Request, db: Session = Depends(get_db), form_data: OAut
         "refresh_token": refresher,
         "token_type": "bearer",
         "user": user,
+        "terminals": get_tenant_terminals(db, user),
         "expiry": expiry.isoformat()
     }
+
+
+def get_tenant_terminals(db: Session, user):
+    if user.scope == Scope.GLOBAL:
+        return []
+    return db.query(Terminal).filter(Terminal.tenant_id == user.tenant_id).all()
 
 
 class RefreshTokenResponse(BaseModel):
