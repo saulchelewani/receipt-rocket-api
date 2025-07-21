@@ -1,6 +1,6 @@
 {
   "statusCode": -2,
   "remark": "TIN not found",
-  "data": null,
+  "data": [],
   "errors": []
 }
