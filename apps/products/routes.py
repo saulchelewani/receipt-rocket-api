@@ -208,7 +208,7 @@ async def search_products(
             detail="Terminal not found"
         )
     return db.query(Product).filter(
-        func.lower(Product.name).contains(name),
+        func.lower(Product.name).contains(name.lower()),
         Product.site_id == terminal.site_id
     ).all()
 
