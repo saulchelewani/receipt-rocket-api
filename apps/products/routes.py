@@ -4,6 +4,7 @@ from typing import Annotated
 
 import httpx
 from fastapi import APIRouter, Header, Depends, HTTPException
+from sqlalchemy import func
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 from starlette import status
@@ -206,7 +207,10 @@ async def search_products(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Terminal not found"
         )
-    return db.query(Product).filter(Product.name.contains(name), Product.site_id == terminal.site_id).all()
+    return db.query(Product).filter(
+        func.lower(Product.name).contains(name),
+        Product.site_id == terminal.site_id
+    ).all()
 
 
 @router.get("/{code}", summary="Get product by code", response_model=ProductRead)

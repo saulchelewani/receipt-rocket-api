@@ -37,6 +37,6 @@ def test_get_product_by_code(client, device_headers, test_db, test_product):
 
 
 def test_search_product_by_name(client, device_headers, test_db, test_product):
-    response = client.get(f"/api/v1/products/search?name={test_product.name[:4]}", headers=device_headers)
+    response = client.get(f"/api/v1/products/search?name={test_product.name[:4].upper()}", headers=device_headers)
     assert response.status_code == 200
     assert response.json()[0]["code"] == test_product.code
