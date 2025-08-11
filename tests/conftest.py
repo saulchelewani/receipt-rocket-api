@@ -158,8 +158,12 @@ def test_terminal(test_db: Session, test_tenant: Tenant):
         site_name='Site 1',
         label='Terminal 1',
         token=get_sequence_number(),
+        trading_name='Business name',
+        address_lines=['Address line 1', 'Address line 2'],
+        email='7VtZG@example.com',
         activation_code=get_sequence_number(),
         position=1,
+        phone_number='1234567890',
         device_id=get_sequence_number()
     )
 

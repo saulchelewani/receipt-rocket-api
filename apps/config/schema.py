@@ -25,6 +25,7 @@ class TaxPayerRead(BaseModel):
 
 
 class TerminalRead(BaseModel):
+    id: UUID
     terminal_id: str
     confirmed_at: datetime | None = None
     trading_name: str

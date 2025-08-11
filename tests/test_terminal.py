@@ -41,3 +41,9 @@ def test_get_unblock_status_still_blocked(client, device_headers, test_db, test_
     test_db.refresh(test_terminal)
     assert test_terminal.is_blocked == True
     assert test_terminal.blocking_reason == "Violation of terms and conditions"
+
+
+def test_list_terminals(client, device_headers, test_db, test_terminal):
+    response = client.get("/api/v1/terminals", headers=device_headers)
+    assert response.status_code == 200
+    assert response.json()[0]["id"] == str(test_terminal.id)
