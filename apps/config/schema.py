@@ -34,6 +34,9 @@ class TerminalRead(BaseModel):
     device_id: str | None = None
     config_version: int
     address_lines: list[str]
+    is_blocked: bool | None = None
+    site_name: str | None = None
+    activation_code: str | None = None
 
 
 class ConfigResponse(BaseModel):

@@ -155,6 +155,7 @@ def test_terminal(test_db: Session, test_tenant: Tenant):
         tenant_id=test_tenant.id,
         config_version=1,
         site_id=str(uuid.uuid4()),
+        site_name='Site 1',
         label='Terminal 1',
         token=get_sequence_number(),
         activation_code=get_sequence_number(),
