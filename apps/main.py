@@ -9,6 +9,7 @@ from apps.profiles.routes import router as profiles_router
 from apps.roles.routes import router as roles_router
 from apps.routes.routes import router as routes_router
 from apps.sales.routes import router as sales_router
+from apps.subscriptions.routes import router as subscriptions_router
 from apps.tenants.routes import router as tenant_router
 from apps.terminals.routes import router as terminals_router
 from apps.users.routes import router as users_router
@@ -22,6 +23,7 @@ app = FastAPI(
 )
 
 app.include_router(tenant_router, prefix=settings.API_V1_STR)
+app.include_router(subscriptions_router, prefix=settings.API_V1_STR)
 app.include_router(profiles_router, prefix=settings.API_V1_STR)
 
 app.include_router(terminals_router, prefix=settings.API_V1_STR)

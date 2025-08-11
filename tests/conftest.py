@@ -1,7 +1,7 @@
 import json
 import os
 import uuid
-from datetime import timedelta
+from datetime import timedelta, datetime
 from pathlib import Path
 
 import pytest
@@ -11,9 +11,10 @@ from sqlalchemy.orm import sessionmaker, Session
 from starlette.testclient import TestClient
 
 from apps.main import app
+from core import Subscription
 from core.auth import create_access_token
 from core.database import Base, get_db
-from core.enums import RoleEnum, Scope, StatusEnum
+from core.enums import RoleEnum, Scope, StatusEnum, BillingCycle
 from core.models import Tenant, Role, User, Terminal, Profile, role_route_association, Route, Product, Item, TaxRate, \
     GlobalConfig, OfflineTransaction, Dictionary
 from core.settings import settings
@@ -379,3 +380,20 @@ def test_dictionary(test_db: Session):
     test_db.commit()
     test_db.refresh(dictionary)
     return dictionary
+
+
+@pytest.fixture
+def test_subscription(test_db: Session, test_tenant):
+    subscription = test_db.query(Subscription).first()
+    if subscription: return subscription
+    subscription = Subscription(
+        end_date=datetime.now() + timedelta(days=30),
+        start_date=datetime.now(),
+        billing_cycle=BillingCycle.MONTHLY,
+        device_limit=5,
+        tenant_id=test_tenant.id
+    )
+    test_db.add(subscription)
+    test_db.commit()
+    test_db.refresh(subscription)
+    return subscription
