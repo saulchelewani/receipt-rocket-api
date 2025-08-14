@@ -3,16 +3,19 @@ from uuid import UUID
 
 from pydantic import BaseModel
 
-from core import BillingCycle
+
+class PackageRead(BaseModel):
+    id: UUID
+    name: str
+    number_of_months: int
+    price: float
 
 
 class SubscriptionBase(BaseModel):
-    description: str | None = None
-    billing_cycle: BillingCycle
-    device_limit: int
     start_date: datetime
     end_date: datetime
     is_active: bool
+    package: PackageRead
 
 
 class SubscriptionRead(SubscriptionBase):

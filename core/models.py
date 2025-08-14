@@ -6,7 +6,7 @@ from sqlalchemy import Column, String, ForeignKey, UUID, Table, Float, DateTime,
 from sqlalchemy.orm import Mapped, relationship, mapped_column
 
 from core.database import Base
-from core.enums import BillingCycle, PaymentStatus
+from core.enums import PaymentStatus
 
 
 class Model(Base):
@@ -163,15 +163,24 @@ class Subscription(Model):
     __tablename__ = "subscriptions"
 
     tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"))
-    billing_cycle = Column(Enum(BillingCycle))
-    device_limit = Column(Integer)
-    price = Column(Float)
-    start_date = Column(DateTime, default=datetime.now())
+    start_date = Column(DateTime, default=func.now())
     end_date = Column(DateTime)
     is_active = Column(Boolean, default=False)
     payment = relationship("Payment", back_populates="subscription", uselist=False)
+    package_id = Column(UUID(as_uuid=True), ForeignKey("packages.id"))
 
+    package: Mapped["Package"] = relationship("Package", back_populates="subscriptions")
     tenant: Mapped["Tenant"] = relationship("Tenant", back_populates="subscriptions")
+
+
+class Package(Model):
+    __tablename__ = "packages"
+
+    name = Column(String, nullable=False)
+    number_of_months = Column(Integer, nullable=False)
+    price = Column(Float, nullable=False)
+
+    subscriptions: Mapped[list["Subscription"]] = relationship("Subscription", back_populates="package")
 
 
 class Payment(Model):
@@ -180,7 +189,7 @@ class Payment(Model):
     subscription_id = Column(UUID(as_uuid=True), ForeignKey("subscriptions.id"))
     status = Column(Enum(PaymentStatus), default=PaymentStatus.PENDING)
     proof_url = Column(String)  # Link to uploaded proof (e.g., in S3, local storage)
-    uploaded_at = Column(DateTime, default=datetime.utcnow)
+    uploaded_at = Column(DateTime, default=func.now())
     approved_at = Column(DateTime, nullable=True)
     admin_id = Column(UUID(as_uuid=True), nullable=True)  # Optionally track who approved
 

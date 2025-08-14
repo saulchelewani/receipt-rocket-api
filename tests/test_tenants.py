@@ -31,6 +31,7 @@ async def test_create_tenant(auth_header_global_admin, test_db) -> None:
                     "email": "test@example.com",
                     "admin_name": "Chimwewemwe Kampingo",
                     "phone_number": rstr.xeger(r"^(\+?265|0)[89]{2}[0-9]{7}$"),
+                    "tin": rstr.xeger(r"^[0-9]{8}$"),
                 })
             data = response.json()
 
@@ -56,6 +57,7 @@ def test_cannot_create_duplicate_tenant(client, auth_header_global_admin, test_t
             "code": "test",
             "email": "test@example.com",
             "admin_name": "man",
-            "phone_number": "265886265490"
+            "phone_number": "265886265490",
+            "tin": "31699145"
         })
     assert response.status_code == 400

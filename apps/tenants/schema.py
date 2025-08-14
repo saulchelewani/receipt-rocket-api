@@ -9,6 +9,7 @@ class TenantBase(BaseModel):
     name: str
     email: EmailStr | None = None
     phone_number: constr(pattern=phone_number_regex)
+    tin: str
 
 
 class TenantRead(TenantBase):

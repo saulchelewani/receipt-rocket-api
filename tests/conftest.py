@@ -14,9 +14,9 @@ from apps.main import app
 from core import Subscription
 from core.auth import create_access_token
 from core.database import Base, get_db
-from core.enums import RoleEnum, Scope, StatusEnum, BillingCycle
+from core.enums import RoleEnum, Scope, StatusEnum
 from core.models import Tenant, Role, User, Terminal, Profile, role_route_association, Route, Product, Item, TaxRate, \
-    GlobalConfig, OfflineTransaction, Dictionary
+    GlobalConfig, OfflineTransaction, Dictionary, Package
 from core.settings import settings
 from core.utils.helpers import get_sequence_number, get_random_number
 
@@ -383,15 +383,25 @@ def test_dictionary(test_db: Session):
 
 
 @pytest.fixture
-def test_subscription(test_db: Session, test_tenant):
+def test_package(test_db: Session):
+    package = test_db.query(Package).first()
+    if package: return package
+    package = Package(name="test_package", number_of_months=1, price=30000)
+    test_db.add(package)
+    test_db.commit()
+    test_db.refresh(package)
+    return package
+
+
+@pytest.fixture
+def test_subscription(test_db: Session, test_tenant, test_package):
     subscription = test_db.query(Subscription).first()
     if subscription: return subscription
     subscription = Subscription(
         end_date=datetime.now() + timedelta(days=30),
         start_date=datetime.now(),
-        billing_cycle=BillingCycle.MONTHLY,
-        device_limit=5,
-        tenant_id=test_tenant.id
+        tenant_id=test_tenant.id,
+        package_id=test_package.id
     )
     test_db.add(subscription)
     test_db.commit()

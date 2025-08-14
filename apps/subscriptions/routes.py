@@ -21,7 +21,7 @@ async def get_subscriptions(
         db: Session = Depends(get_db)
 ):
     subscription = (db.query(Subscription)
-                    .filter(Subscription.end_date > datetime.now())
+                    .filter(Subscription.end_date >= datetime.now())
                     .filter(Subscription.tenant_id == tenant.id).first())
     if not subscription:
         raise HTTPException(status_code=404, detail="There is no active subscription")
