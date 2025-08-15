@@ -52,14 +52,12 @@ async def test_create_tenant(auth_header_global_admin, test_db) -> None:
 def test_cannot_create_duplicate_tenant(client, auth_header_global_admin, test_tenant) -> None:
     response = client.post(
         "/api/v1/tenants/",
-        headers=auth_header_global_admin,
         json={
             "name": test_tenant.name,
-            "code": "test",
-            "email": "test@example.com",
+            "email": test_tenant.email,
             "admin_name": "man",
-            "phone_number": "265886265490",
+            "phone_number": test_tenant.phone_number,
             "password": "password",
-            "tin": "31699145"
+            "tin": test_tenant.tin
         })
     assert response.status_code == 400

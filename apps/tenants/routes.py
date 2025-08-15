@@ -4,6 +4,7 @@ from typing import Set, Any
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 from starlette import status
 
@@ -31,7 +32,13 @@ async def list_tenants(db: Session = Depends(get_db)):
 
 @router.post("/", response_model=TenantRead)
 async def create_tenant(tenant: TenantCreate, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
-    db_tenant = db.query(Tenant).filter(Tenant.name == tenant.name).first()
+    db_tenant = db.query(Tenant).filter(
+        or_(
+            Tenant.email == tenant.email,
+            Tenant.phone_number == tenant.phone_number,
+            Tenant.tin == tenant.tin
+        )
+    ).first()
 
     if db_tenant:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Tenant already exists")
