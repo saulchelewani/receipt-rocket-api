@@ -1,6 +1,6 @@
 import random
 import string
-from typing import Set
+from typing import Set, Any
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
@@ -29,12 +29,12 @@ async def list_tenants(db: Session = Depends(get_db)):
     return tenants
 
 
-@router.post("/", response_model=TenantRead, dependencies=[Depends(is_global_admin)])
+@router.post("/", response_model=TenantRead)
 async def create_tenant(tenant: TenantCreate, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     db_tenant = db.query(Tenant).filter(Tenant.name == tenant.name).first()
 
     if db_tenant:
-        raise HTTPException(status_code=400, detail="Tenant already exists")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Tenant already exists")
 
     codes = get_created_code(db)
 
@@ -44,7 +44,6 @@ async def create_tenant(tenant: TenantCreate, background_tasks: BackgroundTasks,
     )
     db.add(db_tenant)
     db.flush()
-
 
     admin = User(
         tenant_id=db_tenant.id,
@@ -76,7 +75,7 @@ def get_admin_role(db: Session) -> Role:
     return role
 
 
-def get_created_code(db: Session) -> Set[str]:
+def get_created_code(db: Session) -> Set[Any]:
     tenants = db.query(Tenant).all()
     return {tenant.code for tenant in tenants}
 
@@ -96,6 +95,6 @@ def generate_unique_initials(name: str, codes: Set[str]) -> str:
 def create_tenant_admin(tenant_id: UUID, user: AdminCreate, db: Session = Depends(get_db)):
     tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
     if not tenant:
-        raise HTTPException(status_code=404, detail="Tenant not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Tenant not found")
 
     return create_db_user(user, db, tenant_id)
