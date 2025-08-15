@@ -14,10 +14,12 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     role_id: UUID
+    password: str
 
 
 class AdminCreate(UserBase):
     role_id: UUID
+    password: str
 
 
 class UserRead(UserBase):

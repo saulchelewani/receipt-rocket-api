@@ -2,6 +2,7 @@ from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from starlette import status
 
 from apps.subscriptions.schema import SubscriptionRead
 from core import Tenant, Subscription
@@ -23,7 +24,8 @@ async def get_subscriptions(
     subscription = (db.query(Subscription)
                     .filter(Subscription.end_date >= datetime.now())
                     .filter(Subscription.tenant_id == tenant.id).first())
+
     if not subscription:
-        raise HTTPException(status_code=404, detail="There is no active subscription")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="There is no active subscription")
 
     return subscription

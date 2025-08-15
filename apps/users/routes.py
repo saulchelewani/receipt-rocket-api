@@ -11,7 +11,7 @@ from core.database import get_db
 from core.enums import Scope
 from core.models import Tenant, User, Role
 from core.utils.emailer import send_email
-from core.utils.helpers import generate_password, hash_password
+from core.utils.helpers import hash_password
 
 router = APIRouter(prefix="/users", tags=["Users"], dependencies=[Depends(get_current_user), Depends(has_permission)])
 
@@ -61,8 +61,6 @@ def create_db_user(user: UserCreate | AdminCreate, db: Session, tenant_id: UUID 
     if db_user:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
 
-    password = generate_password()
-
     db_user = User(
         email=str(user.email),
         role_id=user.role_id,
@@ -70,7 +68,7 @@ def create_db_user(user: UserCreate | AdminCreate, db: Session, tenant_id: UUID 
         name=user.name,
         status=1002,
         phone_number=user.phone_number,
-        hashed_password=hash_password(password),
+        hashed_password=hash_password(user.password),
     )
     db.add(db_user)
     db.commit()
@@ -79,7 +77,6 @@ def create_db_user(user: UserCreate | AdminCreate, db: Session, tenant_id: UUID 
     background_tasks.add_task(send_email, db_user.email, "New account created", "welcome_email.html", {
         "name": db_user.name,
         "username": db_user.email,
-        "password": password
     })
     return db_user
 
