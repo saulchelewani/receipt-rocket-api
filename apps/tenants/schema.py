@@ -19,3 +19,4 @@ class TenantRead(TenantBase):
 
 class TenantCreate(TenantBase):
     admin_name: str
+    password: str

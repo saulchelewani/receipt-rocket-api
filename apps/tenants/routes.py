@@ -4,7 +4,6 @@ from typing import Set
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
-from passlib.utils import generate_password
 from sqlalchemy.orm import Session
 from starlette import status
 
@@ -40,13 +39,12 @@ async def create_tenant(tenant: TenantCreate, background_tasks: BackgroundTasks,
     codes = get_created_code(db)
 
     db_tenant = Tenant(
-        **tenant.model_dump(exclude={'admin_name'}),
+        **tenant.model_dump(exclude={'admin_name', 'password'}),
         code=generate_unique_initials(tenant.name, codes)
     )
     db.add(db_tenant)
     db.flush()
 
-    password = generate_password()
 
     admin = User(
         tenant_id=db_tenant.id,
@@ -54,13 +52,12 @@ async def create_tenant(tenant: TenantCreate, background_tasks: BackgroundTasks,
         email=db_tenant.email,
         phone_number=db_tenant.phone_number,
         role_id=get_admin_role(db).id,
-        hashed_password=hash_password(password),
+        hashed_password=hash_password(tenant.password),
     )
 
     background_tasks.add_task(send_email, admin.email, "New account created", "welcome_email.html", {
         "name": admin.name,
         "username": admin.email,
-        "password": password
     })
 
     db.add(admin)
