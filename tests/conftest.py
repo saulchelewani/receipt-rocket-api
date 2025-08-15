@@ -18,7 +18,7 @@ from core.enums import RoleEnum, Scope, StatusEnum
 from core.models import Tenant, Role, User, Terminal, Profile, role_route_association, Route, Product, Item, TaxRate, \
     GlobalConfig, OfflineTransaction, Dictionary, Package
 from core.settings import settings
-from core.utils.helpers import get_sequence_number, get_random_number
+from core.utils.helpers import get_sequence_number, get_random_number, tenant_code_regex
 
 # Use an in-memory SQLite database for testing
 engine_test = create_engine(
@@ -235,7 +235,7 @@ def test_tenant(test_db: Session):
     if tenant: return tenant
     tenant = Tenant(
         name="test",
-        code=rstr.xeger(r"^[A-Z]+[0-9]{4}$"),
+        code=rstr.xeger(tenant_code_regex),
         email="test@example.com",
         phone_number="0886265490",
         tin="31699145",
