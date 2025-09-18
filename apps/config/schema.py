@@ -40,6 +40,7 @@ class TerminalRead(BaseModel):
     is_blocked: bool | None = None
     site_name: str | None = None
     activation_code: str | None = None
+    transaction_count: int | None = None
 
 
 class ConfigResponse(BaseModel):
