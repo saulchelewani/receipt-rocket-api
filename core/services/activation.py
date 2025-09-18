@@ -90,10 +90,13 @@ def sync_terminal_config(
     if db_terminal and db_terminal.config_version == config["versionNo"]:
         return db_terminal
 
+    # print(db_terminal)
+
     terminal_dict = {
         'tenant_id': tenant.id,
         'site_id': config['terminalSite']['siteId'],
         'trading_name': config['tradingName'],
+        # 'position': config['terminalPosition'],
         'email': config['emailAddress'],
         'phone_number': config['phoneNumber'],
         'label': config['terminalLabel'],
