@@ -31,6 +31,8 @@ class TerminalRead(BaseModel):
     trading_name: str
     email: str
     phone_number: str
+    position: int | None = None
+    secret_key: str | None = None
     label: str
     device_id: str | None = None
     config_version: int
