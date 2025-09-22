@@ -29,6 +29,7 @@ def test_make_a_sale(client, test_db, device_headers, test_terminal, test_produc
     test_db.refresh(product)
 
     response = client.post("/api/v1/sales", headers=device_headers, json={
+        "invoice_number": "INV-2025-09-22-0001",
         "payment_method": PaymentMethod.MOBILE_MONEY,
         "buyer_name": "John Doe",
         "buyer_tin": get_random_number(9),
@@ -59,6 +60,7 @@ def test_make_a_sale_tin_not_found(client, test_db, device_headers, test_termina
         return_value=Response(200, json=get_mock_data(filename="sales_response_tin_not_found.json")))
 
     response = client.post("/api/v1/sales", headers=device_headers, json={
+        "invoice_number": "INV-2025-09-22-0001",
         "payment_method": PaymentMethod.MOBILE_MONEY,
         "invoice_line_items": [
             {
@@ -79,6 +81,7 @@ def test_make_an_offline_sale(client, test_db, device_headers, test_terminal, te
         side_effect=ConnectTimeout("Connection timed out"))
 
     response = client.post("/api/v1/sales", headers=device_headers, json={
+        "invoice_number": "INV-2025-09-22-0001",
         "payment_method": PaymentMethod.MOBILE_MONEY,
         "buyer_name": "John Doe",
         "buyer_tin": get_random_number(9),
@@ -107,6 +110,7 @@ def test_make_sale_with_discount(client, test_db, device_headers, test_terminal,
         return_value=Response(200, json=get_mock_data(filename="sales_response.json")))
 
     response = client.post("/api/v1/sales", headers=device_headers, json={
+        "invoice_number": "INV-2025-09-22-0001",
         "payment_method": PaymentMethod.MOBILE_MONEY,
         "buyer_name": "John Doe",
         "buyer_tin": get_random_number(9),
@@ -136,6 +140,7 @@ def test_make_a_sale_without_buyer_details(client, test_db, device_headers, test
         return_value=Response(200, json=get_mock_data(filename="sales_response.json")))
 
     response = client.post("/api/v1/sales", headers=device_headers, json={
+        "invoice_number": "INV-2025-09-22-0001",
         "payment_method": PaymentMethod.MOBILE_MONEY,
         "invoice_line_items": [
             {
@@ -158,6 +163,7 @@ def test_make_a_sale_for_relief_without_certificate(client, test_db, device_head
         return_value=Response(200, json=get_mock_data(filename="sales_response.json")))
 
     response = client.post("/api/v1/sales", headers=device_headers, json={
+        "invoice_number": "INV-2025-09-22-0001",
         "payment_method": PaymentMethod.MOBILE_MONEY,
         "is_relief_supply": True,
         "invoice_line_items": [
@@ -179,6 +185,7 @@ def test_make_a_sale_for_relief(client, test_db, device_headers, test_terminal, 
         return_value=Response(200, json=get_mock_data(filename="sales_response.json")))
 
     response = client.post("/api/v1/sales", headers=device_headers, json={
+        "invoice_number": "INV-2025-09-22-0001",
         "payment_method": PaymentMethod.MOBILE_MONEY,
         "is_relief_supply": True,
         "vat5_certificate_details": {
@@ -212,6 +219,7 @@ def test_make_a_sale_blocked_terminal(client, test_db, device_headers, test_term
         return_value=Response(200, json=get_mock_data(filename="blocking_message_response.json")))
 
     response = client.post("/api/v1/sales", headers=device_headers, json={
+        "invoice_number": "INV-2025-09-22-0001",
         "payment_method": PaymentMethod.MOBILE_MONEY,
         "invoice_line_items": [
             {
@@ -238,6 +246,7 @@ def test_make_a_sale_cached_blocked_terminal(client, test_db, device_headers, te
     test_db.commit()
 
     response = client.post("/api/v1/sales", headers=device_headers, json={
+        "invoice_number": "INV-2025-09-22-0001",
         "payment_method": PaymentMethod.CASH,
         "invoice_line_items": [
             {
@@ -259,6 +268,7 @@ def test_make_a_sale_outdated_config(client, test_db, device_headers, test_termi
         return_value=Response(200, json=get_mock_data(filename="sales_response_outdated_config.json")))
 
     response = client.post("/api/v1/sales", headers=device_headers, json={
+        "invoice_number": "INV-2025-09-22-0001",
         "payment_method": PaymentMethod.CARD,
         "invoice_line_items": [
             {

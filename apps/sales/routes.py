@@ -12,7 +12,7 @@ from core.database import get_db
 from core.models import Terminal, GlobalConfig, Product, TaxRate
 from core.services.blocking import get_blocking_message
 from core.services.sales import submit_transaction, run_submission_job
-from core.utils.helpers import calculate_tax, generate_invoice_number
+from core.utils.helpers import calculate_taxable_amount
 
 router = APIRouter(
     prefix="/sales",
@@ -65,8 +65,8 @@ async def submit_a_transaction(
         amount = selling_price * item.quantity
 
         rate_id = db_tax_rate.rate_id
-        taxable_amount = calculate_tax(amount, db_tax_rate.rate)
-        taxable_unit_price = calculate_tax(selling_price, db_tax_rate.rate)
+        taxable_amount = calculate_taxable_amount(amount, db_tax_rate.rate)
+        taxable_unit_price = calculate_taxable_amount(selling_price, db_tax_rate.rate)
         tax_amount = amount - taxable_amount
 
         if rate_id not in tax_breakdown:
@@ -109,12 +109,7 @@ async def submit_a_transaction(
 
     invoice = {
         "invoiceHeader": {
-            "invoiceNumber": generate_invoice_number(
-                taxpayer_id=terminal.tenant.taxpayer_id,
-                position=terminal.position,
-                transaction_date=datetime.now(),
-                transaction_count=terminal.transaction_count + 1
-            ),
+            "invoiceNumber": request.invoice_number,
             "invoiceDateTime": datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
             "sellerTIN": terminal.tenant.tin,
             "buyerTIN": request.buyer_tin,
@@ -132,7 +127,7 @@ async def submit_a_transaction(
         "invoiceSummary": {
             "taxBreakDown": tax_breakdown_list,
             "totalVAT": round(total_vat, 2),
-            "offlineSignature": None,
+            "offlineSignature": request.offline_signature,
             "invoiceTotal": invoice_total
         }
     }

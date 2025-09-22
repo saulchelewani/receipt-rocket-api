@@ -7,7 +7,7 @@ from pydantic import BaseModel, field_validator, conlist
 class PaymentMethod(str, Enum):
     CASH = "cash"
     CARD = "card"
-    CHECK = "check"
+    CHEQUE = "cheque"
     BANK_TRANSFER = "bank_transfer"
     MOBILE_MONEY = "mobile_money"
 
@@ -30,6 +30,7 @@ class VAT5CertificateDetailsRequest(BaseModel):
     quantity: int
 
 class TransactionRequest(BaseModel):
+    invoice_number: str
     buyer_tin: str | None = None
     buyer_name: str | None = None
     buyer_authorization_code: str | None = None
@@ -37,6 +38,7 @@ class TransactionRequest(BaseModel):
     vat5_certificate_details: VAT5CertificateDetailsRequest | None = None
     payment_method: PaymentMethod
     invoice_line_items: conlist(InvoiceLineItem, min_length=1)
+    offline_signature: str | None = None
 
     @field_validator("payment_method")
     def validate_payment_method(cls, value):
